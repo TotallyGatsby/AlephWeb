@@ -1,0 +1,8 @@
+/*
+  For the debug light meters below the play area
+*/
+.meter{
+    width:30px;
+    height:30px;
+    float:left;
+}
