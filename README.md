@@ -1,7 +1,7 @@
 AlephWeb
 ========
 
-A WebGL port of the Aleph One project which aims to replicate the experiences of Marathon 2 and Marathon Infinity in a web browser through the use of HTML 5, WebGL, and other current web technologies. It cribs heavily from the [Aleph One project](http://marathon.sourceforge.net/) and [Bungie's released source](http://infinitysource.bungie.org/).
+A broswer port of the Aleph One project which aims to replicate the experiences of Marathon 2 and Marathon Infinity in a web browser through the use of HTML 5, WebGL, and other current web technologies. It cribs heavily from the [Aleph One project](http://marathon.sourceforge.net/) and [Bungie's released source](http://infinitysource.bungie.org/).
 
 License
 =======
