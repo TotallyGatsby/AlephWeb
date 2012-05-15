@@ -39,6 +39,7 @@ a1.segment(
         surfaceBuffers: {},
         
         // A dictionary of indices to build index buffers
+		// Each material gets a list of indices, which are then passed to the index buffer
         renderCache: {},
         
         // Clears the render cache in prep for rendering
