@@ -71,8 +71,8 @@ a1.segment(
         // If the data for this buffer changed this frame, we need to push it to the graphics card
         // (Called in rederer.render)
         updateBuffer: function(matID){
-            if (this.surfData[matID].isChanged === true){
-                this.surfData[matID].isChanged = false;
+            if (this.surfData[matID].isDirty === true){
+                this.surfData[matID].isDirty = false;
 				// Reload the position information
 				a1.SM.sendBufferData(a1.gl.ARRAY_BUFFER, a1.SM.surfaceBuffers[matID].posBuffer,new Float32Array(this.verts), 3);
             }
@@ -260,43 +260,58 @@ a1.segment(
             
             curSurfData = this.surfData[matID];
             
-            var zeroPoint = curSurfData.verts.length/3;
+            // At some point, we will check to see whether this poly 
+            // already exists and use that as the position to splice into
+            // the vert/texcoord data
+            // TODO: Splice from an existing point from polylookup OR from the end of the list
+            var splicePoint = curSurfData.verts.length;
+            
+            
+            var zeroPoint = splicePoint/3;
             
             // Append the data to the Pos, Tex, and Index arrays
             // Build the vertex buffers
             for(var j=0; j < poly.endpointIndices.length; j++){
                 // Grab the endpoint coords
                 endPt = a1.mapData.getChunkEntry(poly.endpointIndices[j], "EPNT");
-                curSurfData.verts.push(endPt.vertx);
-                curSurfData.verts.push(poly.floorHeight);
-                curSurfData.verts.push(endPt.verty);
+                
+                // Update the vertex data
+                curSurfData.verts.splice(splicepoint+j*3, 3,
+                                endPt.vertx,
+                                poly.floorHeight,
+                                endPt.verty);
                 
                 // Marathon textures were 128x128px and 1024x1024 world units
                 // WebGL Texture coordinates are 0<->1 We can effectively divide
                 // the world pos by 1024 to get our texcoords
                 // TODO: Handle x/y offset on textures                
-                curSurfData.texCoords.push(endPt.verty/1024.0+poly.floorY);
-                curSurfData.texCoords.push(-(endPt.vertx/1024.0-poly.floorX)+.5);
-                curSurfData.texCoords.push(poly.floorLightIndex);
+                curSurfData.texCoords.splice(splicepoint+j*3, 3,
+                            endPt.verty/1024.0+poly.floorY,
+                            -(endPt.vertx/1024.0-poly.floorX)+.5,
+                            poly.floorLightIndex);
             }
             
             // We need to know how many points are in the index buffer
             // before we add any more to it so all our inserts are relative
-            // to the 0th point in this polygon
+            // to the 0th point in this material
             
-            var offset = curSurfData.indices.length;
+            // TODO: Splice from an existing point from polylookup OR from the end of the list
+            // It's unlikely we'll need to change our index data, as polys won't ever gain/lose
+            // points or change their winding.
+            var indexSplicePoint = curSurfData.indices.length;
             var length = 0;
             // Build the index buffer
             for (j=2; j < poly.endpointIndices.length; j++){
-                curSurfData.indices.push(zeroPoint);
-                curSurfData.indices.push(j + zeroPoint);
-                curSurfData.indices.push(j - 1 + zeroPoint);
+                curSurfData.indices.splice(indexSplicePoint+length, 3,
+                            zeroPoint,
+                            j + zeroPoint,
+                            j - 1 + zeroPoint);
                 length+=3;
             }
             
             // Record the MaterialID, the offset in the index buffer,
             // and the length in the index buffer for quick lookups
-            this.polyLookup[i].push({"matID":matID, "offset":offset, "length":length});
+            this.polyLookup[i].push({"matID":matID, "offset":indexSplicePoint, "length":length});
         },
         
         // Build the polygons for our ceiling
@@ -358,6 +373,7 @@ a1.segment(
                 this.surfData[matID].verts = [];
                 this.surfData[matID].texCoords = [];
                 this.surfData[matID].indices = [];
+                this.surfData[matID].isDirty = false;
             }
         },
         
