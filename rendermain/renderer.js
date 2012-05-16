@@ -238,6 +238,9 @@ a1.segment(
                     // For each material in the rendercache
                     // fire off a call to draw elements
                     for (var matID in a1.SM.renderCache){
+                        // Ensure we always have the most up to date info in our buffer
+                        a1.SM.updateBuffer(matID);
+                        
                         // Fetch references to the vertex and texture buffers for this material
                         posBuffer = a1.SM.surfaceBuffers[matID].posBuffer;
                         texBuffer = a1.SM.surfaceBuffers[matID].texBuffer;

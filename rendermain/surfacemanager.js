@@ -2,22 +2,22 @@
 
     Copyright (C) AlephWeb developers -- github.com/Pfhreak/AlephWeb
     Portions of this code are based on the code:
-	Copyright (C) 1991-2001 and beyond by Bungie Studios, Inc.
-	and the "Aleph One" developers.
+    Copyright (C) 1991-2001 and beyond by Bungie Studios, Inc.
+    and the "Aleph One" developers.
  
-	This program is free software; you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; either version 3 of the License, or
-	(at your option) any later version.
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 3 of the License, or
+    (at your option) any later version.
 
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	This license is contained in the file "COPYING",
-	which is included with this source code; it is available online at
-	http://www.gnu.org/licenses/gpl.html
+    This license is contained in the file "COPYING",
+    which is included with this source code; it is available online at
+    http://www.gnu.org/licenses/gpl.html
 
 */
 
@@ -31,7 +31,7 @@
 */
 
 a1.segment(
-	'rendermain.surfacemanager'
+    'rendermain.surfacemanager'
 ).defines(function(){
     a1.SurfaceManager = a1.Class.extend({
         surfData: {},
@@ -39,7 +39,7 @@ a1.segment(
         surfaceBuffers: {},
         
         // A dictionary of indices to build index buffers
-		// Each material gets a list of indices, which are then passed to the index buffer
+        // Each material gets a list of indices, which are then passed to the index buffer
         renderCache: {},
         
         // Clears the render cache in prep for rendering
@@ -68,8 +68,17 @@ a1.segment(
             }
         },
 
+        // If the data for this buffer changed this frame, we need to push it to the graphics card
+        // (Called in rederer.render)
+        updateBuffer: function(matID){
+            if (this.surfData[matID].isChanged === true){
+                this.surfData[matID].isChanged = false;
+				// Reload the position information
+				a1.SM.sendBufferData(a1.gl.ARRAY_BUFFER, a1.SM.surfaceBuffers[matID].posBuffer,new Float32Array(this.verts), 3);
+            }
+        },
         
-        // Populates the necessary data structures to render the level only once
+        // Populates the necessary data structures to render the level
         loadLevel: function(){
             this.surfData = {};
             this.polyLookup.length = 0;
@@ -208,7 +217,7 @@ a1.segment(
             curSurfData.texCoords.push(line.len/1024.0 + xOffset);
             curSurfData.texCoords.push(1.0+yOffset);
             curSurfData.texCoords.push(lite);
-	    
+        
             // Lower Right
             curSurfData.verts.push(endPt2.vertx);
             curSurfData.verts.push(floor);
@@ -216,7 +225,7 @@ a1.segment(
             curSurfData.texCoords.push(line.len/1024.0 + xOffset);
             curSurfData.texCoords.push(1.0-((ceiling-floor)/1024.0)+yOffset);
             curSurfData.texCoords.push(lite);
-	    
+        
             // Lower Left
             curSurfData.verts.push(endPt1.vertx);
             curSurfData.verts.push(floor);
@@ -224,7 +233,7 @@ a1.segment(
             curSurfData.texCoords.push(xOffset);
             curSurfData.texCoords.push(1.0-((ceiling-floor)/1024.0) + yOffset);
             curSurfData.texCoords.push(lite);
-	    
+        
             var offset = curSurfData.indices.length;
             var length = 0;
             // Build the index buffer
@@ -360,26 +369,25 @@ a1.segment(
             
             // Create the position buffer
             a1.SM.surfaceBuffers[matID].posBuffer = a1.gl.createBuffer();
-            a1.gl.bindBuffer(a1.gl.ARRAY_BUFFER, a1.SM.surfaceBuffers[matID].posBuffer);
-            // Put our data in the position buffer
-            a1.gl.bufferData(a1.gl.ARRAY_BUFFER, new Float32Array(this.verts), a1.gl.STATIC_DRAW);
-            a1.SM.surfaceBuffers[matID].posBuffer.itemSize = 3;
-            a1.SM.surfaceBuffers[matID].posBuffer.numItems = this.verts.length/3;
+            a1.SM.sendBufferData(a1.gl.ARRAY_BUFFER, a1.SM.surfaceBuffers[matID].posBuffer,new Float32Array(this.verts), 3);
             
             // Create the texcoord buffer
             a1.SM.surfaceBuffers[matID].texBuffer = a1.gl.createBuffer();
-            a1.gl.bindBuffer(a1.gl.ARRAY_BUFFER, a1.SM.surfaceBuffers[matID].texBuffer);
-            
-            // Fill the buffer
-            a1.gl.bufferData(a1.gl.ARRAY_BUFFER, new Float32Array(this.texCoords), a1.gl.STATIC_DRAW);
-            a1.SM.surfaceBuffers[matID].texBuffer.itemSize = 3;
-            a1.SM.surfaceBuffers[matID].texBuffer.numItems = this.texCoords.length/3; // Same number of items
-            
+            a1.SM.sendBufferData(a1.gl.ARRAY_BUFFER, a1.SM.surfaceBuffers[matID].texBuffer,new Float32Array(this.texCoords), 3);
+
+            // Create the index buffer
             a1.SM.surfaceBuffers[matID].idxBuffer = a1.gl.createBuffer();
-            a1.gl.bindBuffer(a1.gl.ELEMENT_ARRAY_BUFFER, a1.SM.surfaceBuffers[matID].idxBuffer);
-            a1.gl.bufferData(a1.gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.indices), a1.gl.STATIC_DRAW);
-            a1.SM.surfaceBuffers[matID].idxBuffer.itemSize = 1;
-            a1.SM.surfaceBuffers[matID].idxBuffer.numItems = this.indices.length;
+            a1.SM.sendBufferData(a1.gl.ELEMENT_ARRAY_BUFFER, a1.SM.surfaceBuffers[matID].idxBuffer,new Uint16Array(this.indices), 1);
+        },
+        
+        // Sends data to the passed buffer
+        // TODO: Would this be useful in a utility class?
+        sendBufferData: function(bufferType, buffer, data, itemSize){
+            a1.gl.bindBuffer(bufferType, buffer);
+            // Put our data in the position buffer
+            a1.gl.bufferData(bufferType, data, a1.gl.STATIC_DRAW);
+            buffer.itemSize = itemSize;
+            buffer.numItems = data.length/itemSize;
         }
     });  
 });
