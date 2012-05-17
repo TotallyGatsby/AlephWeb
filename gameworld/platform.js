@@ -33,6 +33,14 @@ a1.segment(
     a1.Platform = a1.Class.extend({
         flags: 0,
         
+		curFloorHeight: 0,
+		
+		curCeilingHeight: 0,
+		
+		update: function(){
+			
+		},
+		
         // All the various flags a platform can have
         isInitiallyActive:function(){
             return (flags & 0x1) != 0;

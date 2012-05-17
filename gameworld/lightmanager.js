@@ -36,7 +36,8 @@ a1.segment(
     
     a1.LightManager = a1.Class.extend({
         lights:[],
-        
+        minLight: 0.15,
+		
         init:function(){
             // Create a light entry for every light in the map?
             // We lazy load them in getIntensity right now
@@ -56,7 +57,7 @@ a1.segment(
             
             // TODO: Once we can render a minimum light level around the player
             // we can remove the clamp of .15, and instead clamp to 0
-            return Math.min(1.0, Math.max(this.lights[id].getIntensityNormal(), .15));
+            return Math.min(1.0, Math.max(this.lights[id].getIntensityNormal(), this.minLight));
         },
         
         // Returns an array representing the intensities of all the lights

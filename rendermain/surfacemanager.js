@@ -56,15 +56,14 @@ a1.segment(
             }
             var temp;            
             
-            for(var i=0; i < this.polyLookup[index].length; i++){
-                temp = this.polyLookup[index][i];
-                // Get the index buffer info and add it to the cache
-                
-                if (this.renderCache[temp.matID] === undefined){
-                    this.renderCache[temp.matID] = []; // Create the cache if needed
+            for(surfaceName in this.polyLookup[index]){
+				surface = this.polyLookup[index][surfaceName];
+                // Get the index buffer info and add it to the cache      
+                if (this.renderCache[surface.matID] === undefined){
+                    this.renderCache[surface.matID] = []; // Create the cache if needed
                 }
                 
-                this.renderCache[temp.matID] = this.renderCache[temp.matID].concat(this.surfData[temp.matID].indices.slice(temp.offset, temp.offset+temp.length));
+                this.renderCache[surface.matID] = this.renderCache[surface.matID].concat(this.surfData[surface.matID].indices.slice(surface.offset, surface.offset+surface.length));
             }
         },
 
@@ -74,7 +73,8 @@ a1.segment(
             if (this.surfData[matID].isDirty === true){
                 this.surfData[matID].isDirty = false;
 				// Reload the position information
-				a1.SM.sendBufferData(a1.gl.ARRAY_BUFFER, a1.SM.surfaceBuffers[matID].posBuffer,new Float32Array(this.verts), 3);
+				a1.gl.bindBuffer(a1.gl.ARRAY_BUFFER, a1.SM.surfaceBuffers[matID].posBuffer);
+				a1.SM.sendBufferData(a1.gl.ARRAY_BUFFER, a1.SM.surfaceBuffers[matID].posBuffer,new Float32Array(a1.SM.surfData[matID].verts), 3);
             }
         },
         
@@ -92,9 +92,13 @@ a1.segment(
                 // For each surface
                 poly = a1.mapData.getChunkEntry(i, "POLY");
                 
-                this.loadFloor(poly, i);
-                this.loadCeiling(poly, i);
-                this.loadWalls(poly, i);
+				// Floor
+				this.updateHorizontal(poly, i, poly.floorTexture, poly.floorHeight, poly.floorX, poly.floorY, poly.floorLightIndex, "floor");
+                
+				// Ceiling
+				this.updateHorizontal(poly, i, poly.ceilingTexture, poly.ceilingHeight, poly.ceilingX, poly.ceilingY, poly.ceilingLightIndex, "ceiling");
+                
+				this.loadWalls(poly, i);
             }
             // Actually create our WebGL buffers
             $.each(this.surfData, this.buildBuffers);
@@ -139,17 +143,17 @@ a1.segment(
                     matID = side.pmat;
                     if (matID != -1){
                         zeroPoint = this.addVertSurface(matID, line, poly.floorHeight,poly.ceilingHeight,side.px, side.py,side.plite)
-                        this.polyLookup[polyId].push({"matID":matID, "offset":zeroPoint, "length":6});
+                        this.polyLookup[polyId]["side"+i]={"matID":matID, "offset":zeroPoint, "length":6};
                     }
                     matID = side.smat;
                     if (matID != -1){
                         zeroPoint = this.addVertSurface(matID, line, poly.floorHeight,poly.ceilingHeight , side.sx, side.sy,side.slite);
-                        this.polyLookup[polyId].push({"matID":matID, "offset":zeroPoint, "length":6});
+                        this.polyLookup[polyId]["side"+i]={"matID":matID, "offset":zeroPoint, "length":6};
                     }
                     matID = side.tmat;
                     if (matID != -1){
                         zeroPoint = this.addVertSurface(matID, line, poly.floorHeight,poly.ceilingHeight, side.tx, side.ty,side.tlite);
-                        this.polyLookup[polyId].push({"matID":matID, "offset":zeroPoint, "length":6});
+                        this.polyLookup[polyId]["side"+i]={"matID":matID, "offset":zeroPoint, "length":6};
                     }
                 }
                 // If the ceilings of the adjacent polys are equal, use the primary material for the lower area
@@ -157,12 +161,12 @@ a1.segment(
                     matID = side.pmat;
                     if (matID != -1){
                         zeroPoint = this.addVertSurface(matID, line, poly.floorHeight, line.hAdjFlr, side.px, side.py,side.plite);
-                        this.polyLookup[polyId].push({"matID":matID, "offset":zeroPoint, "length":6});
+                        this.polyLookup[polyId]["side"+i]={"matID":matID, "offset":zeroPoint, "length":6};
                     }
                     matID = side.tmat;
                     if (matID != -1){
                         zeroPoint = this.addVertSurface(matID, line, line.hAdjFlr,  line.lAdjCei, side.tx, side.ty,side.tlite);
-                        this.polyLookup[polyId].push({"matID":matID, "offset":zeroPoint, "length":6});
+                        this.polyLookup[polyId]["side"+i]={"matID":matID, "offset":zeroPoint, "length":6};
                     }
                 }
                 // We have a split poly, render upper, lower, and transparent sides
@@ -170,17 +174,17 @@ a1.segment(
                     matID = side.pmat;
                     if (matID != -1){
                         zeroPoint = this.addVertSurface(matID, line, line.lAdjCei, poly.ceilingHeight, side.px, side.py,side.plite);
-                        this.polyLookup[polyId].push({"matID":matID, "offset":zeroPoint, "length":6});
+                        this.polyLookup[polyId]["side"+i]={"matID":matID, "offset":zeroPoint, "length":6};
                     }
                     matID = side.smat;
                     if (matID != -1){
                         zeroPoint = this.addVertSurface(matID, line, poly.floorHeight, line.hAdjFlr , side.sx, side.sy,side.slite);
-                        this.polyLookup[polyId].push({"matID":matID, "offset":zeroPoint, "length":6});
+                        this.polyLookup[polyId]["side"+i]={"matID":matID, "offset":zeroPoint, "length":6};
                     }
                     matID = side.tmat;
                     if (matID != -1){
                         zeroPoint = this.addVertSurface(matID, line, line.hAdjFlr,  line.lAdjCei, side.tx, side.ty,side.tlite);
-                        this.polyLookup[polyId].push({"matID":matID, "offset":zeroPoint, "length":6});
+                        this.polyLookup[polyId]["side"+i]={"matID":matID, "offset":zeroPoint, "length":6};
                     }
                 }
             }
@@ -248,23 +252,26 @@ a1.segment(
         // Build the polygons for our floor
         // TODO: This shares a lot of code with loadCeiling
         //   condense it?
-        loadFloor: function(poly, i){
+        updateHorizontal: function(poly, i, matID, height, texX, texY, lightIndex, name){
             var curSurfData;
-            var matID;
             var endPt;
-            // Get the material
-            matID = poly.floorTexture;
             
             // If we don't have arrays for that material, create them
             this.ensureSurfData(matID);
             
             curSurfData = this.surfData[matID];
             
+			// If we update, we're dirty
+			curSurfData.isDirty = true;
+			
             // At some point, we will check to see whether this poly 
             // already exists and use that as the position to splice into
             // the vert/texcoord data
             // TODO: Splice from an existing point from polylookup OR from the end of the list
-            var splicePoint = curSurfData.verts.length;
+			var splicePoint = curSurfData.verts.length;
+			if (this.polyLookup[i][name] !== undefined){
+				splicePoint = this.polyLookup[i][name].vertOffset;
+			}
             
             
             var zeroPoint = splicePoint/3;
@@ -276,19 +283,19 @@ a1.segment(
                 endPt = a1.mapData.getChunkEntry(poly.endpointIndices[j], "EPNT");
                 
                 // Update the vertex data
-                curSurfData.verts.splice(splicepoint+j*3, 3,
+                curSurfData.verts.splice(splicePoint+j*3, 3,
                                 endPt.vertx,
-                                poly.floorHeight,
+                                height,
                                 endPt.verty);
                 
                 // Marathon textures were 128x128px and 1024x1024 world units
                 // WebGL Texture coordinates are 0<->1 We can effectively divide
                 // the world pos by 1024 to get our texcoords
-                // TODO: Handle x/y offset on textures                
-                curSurfData.texCoords.splice(splicepoint+j*3, 3,
-                            endPt.verty/1024.0+poly.floorY,
-                            -(endPt.vertx/1024.0-poly.floorX)+.5,
-                            poly.floorLightIndex);
+                // TODO: Handle x/y offset on textures
+                curSurfData.texCoords.splice(splicePoint+j*3, 3,
+                            endPt.verty/1024.0+texY,
+                            -(endPt.vertx/1024.0-texX)+.5,
+                            lightIndex);
             }
             
             // We need to know how many points are in the index buffer
@@ -298,72 +305,27 @@ a1.segment(
             // TODO: Splice from an existing point from polylookup OR from the end of the list
             // It's unlikely we'll need to change our index data, as polys won't ever gain/lose
             // points or change their winding.
-            var indexSplicePoint = curSurfData.indices.length;
-            var length = 0;
-            // Build the index buffer
-            for (j=2; j < poly.endpointIndices.length; j++){
-                curSurfData.indices.splice(indexSplicePoint+length, 3,
-                            zeroPoint,
-                            j + zeroPoint,
-                            j - 1 + zeroPoint);
-                length+=3;
-            }
             
-            // Record the MaterialID, the offset in the index buffer,
-            // and the length in the index buffer for quick lookups
-            this.polyLookup[i].push({"matID":matID, "offset":indexSplicePoint, "length":length});
-        },
-        
-        // Build the polygons for our ceiling
-        loadCeiling: function(poly, i){
-            var curSurfData;
-            var matID;
-            var endPt;
-            // Get the material
-            matID = poly.ceilingTexture;
+			// We only need to update this data if we've never seen it before.
+			if (this.polyLookup[i][name] === undefined){
+				var indexSplicePoint = curSurfData.indices.length;
+				
+				var length = 0;
+				// Build the index buffer
+				for (j=2; j < poly.endpointIndices.length; j++){
+					curSurfData.indices.splice(indexSplicePoint+length, 3,
+								zeroPoint,
+								j + zeroPoint,
+								j - 1 + zeroPoint);
+					length += 3;
+				}
+				
+				// Record the MaterialID, the offset in the index buffer,
+				// and the length in the index buffer for quick lookups
+				this.polyLookup[i][name] = {"matID":matID, "vertOffset":splicePoint, "offset":indexSplicePoint, "length":length};
+			}
+			
             
-            // If we don't have arrays for that material, create them
-            this.ensureSurfData(matID);
-            
-            curSurfData = this.surfData[matID];
-            
-            var zeroPoint = curSurfData.verts.length/3;
-            
-            // Append the data to the Pos, Tex, and Index arrays
-            // Build the vertex buffers
-            for(var j=0; j < poly.endpointIndices.length; j++){
-                // Grab the endpoint coords
-                endPt = a1.mapData.getChunkEntry(poly.endpointIndices[j], "EPNT");
-                curSurfData.verts.push(endPt.vertx);
-                curSurfData.verts.push(poly.ceilingHeight);
-                curSurfData.verts.push(endPt.verty);
-                
-                // Marathon textures were 128x128px and 1024x1024 world units
-                // WebGL Texture coordinates are 0<->1 We can effectively divide
-                // the world pos by 1024 to get our texcoords
-                // TODO: Handle x/y offset on textures
-                curSurfData.texCoords.push(endPt.verty/1024.0+poly.floorY);
-                curSurfData.texCoords.push(endPt.vertx/1024.0+poly.floorX);
-                curSurfData.texCoords.push(poly.ceilingLightIndex);
-            }
-            
-            // We need to know how many points are in the index buffer
-            // before we add any more to it so all our inserts are relative
-            // to the 0th point in this polygon
-            
-            var offset = curSurfData.indices.length;
-            var length = 0;
-            // Build the index buffer (reversed windings from the floor)
-            for (j=2; j < poly.endpointIndices.length; j++){
-                curSurfData.indices.push(zeroPoint);
-                curSurfData.indices.push(j - 1+ zeroPoint);
-                curSurfData.indices.push(j + zeroPoint);
-                length += 3;
-            }
-            
-            // Record the MaterialID, the offset in the index buffer,
-            // and the length in the index buffer for quick lookups
-            this.polyLookup[i].push({"matID":matID, "offset":offset, "length":length});
         },
         
         // Ensures we have the proper data structures in place for each material id
