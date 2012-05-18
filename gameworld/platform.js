@@ -32,12 +32,24 @@ a1.segment(
 ).defines(function(){
     a1.Platform = a1.Class.extend({
         flags: 0,
-        
-		curFloorHeight: 0,
+        delay: 0,
 		
+		minFloorHeight: 0,
+		curFloorHeight: 0,
+		maxFloorHeight: 0,
+		
+		minCeilHeight: 0,
 		curCeilingHeight: 0,
+		maxCeilHeight: 0,
+
+		speed: 0,
+		
+		isOpening: true,
+		
+		type: 0,
 		
 		update: function(){
+			// For now, let's just assume all platforms are active
 			
 		},
 		
