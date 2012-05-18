@@ -48,9 +48,34 @@ a1.segment(
 		
 		type: 0,
 		
-		update: function(){
+		update: function(){            
 			// For now, let's just assume all platforms are active
-			
+			if (isOpening === true){
+                // Update the floor position
+                this.curFloorHeight = Math.max(this.minFloorHeight, this.curFloorHeight - this.speed);
+                
+                // Update the ceiling position
+                this.curCeilingHeight = Math.min(this.maxCeilHeight, this.maxCeilHeight + this.speed);
+                
+                // Change directions if we're fully open
+                // TODO: Wait our delay
+                if (this.curFloorHeight == this.minFloorHeight && this.curCeilingHeight == this.maxCeilHeight){
+                    this.isOpening = false;
+                }
+            }
+            else {
+                // Update the floor position
+                this.curFloorHeight = Math.min(this.maxFloorHeight, this.curFloorHeight + this.speed);
+                
+                // Update the ceiling position
+                this.curCeilingHeight = Math.max(this.minCeilHeight, this.maxCeilHeight - this.speed);
+                
+                // Change directions if we're fully closed
+                // TODO: Wait our delay
+                if (this.curFloorHeight == this.maxFloorHeight && this.curCeilingHeight == this.minCeilHeight){
+                    this.isOpening = true;
+                }
+            }
 		},
 		
         // All the various flags a platform can have

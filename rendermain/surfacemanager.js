@@ -93,10 +93,10 @@ a1.segment(
                 poly = a1.mapData.getChunkEntry(i, "POLY");
                 
 				// Floor
-				this.updateHorizontal(poly, i, poly.floorTexture, poly.floorHeight, poly.floorX, poly.floorY, poly.floorLightIndex, "floor");
+				this.loadHorizontal(poly, i, poly.floorTexture, poly.floorHeight, poly.floorX, poly.floorY, poly.floorLightIndex, "floor");
                 
 				// Ceiling
-				this.updateHorizontal(poly, i, poly.ceilingTexture, poly.ceilingHeight, poly.ceilingX, poly.ceilingY, poly.ceilingLightIndex, "ceiling");
+				this.loadHorizontal(poly, i, poly.ceilingTexture, poly.ceilingHeight, poly.ceilingX, poly.ceilingY, poly.ceilingLightIndex, "ceiling");
                 
 				this.loadWalls(poly, i);
             }
@@ -252,7 +252,7 @@ a1.segment(
         // Build the polygons for our floor
         // TODO: This shares a lot of code with loadCeiling
         //   condense it?
-        updateHorizontal: function(poly, i, matID, height, texX, texY, lightIndex, name){
+        loadHorizontal: function(poly, i, matID, height, texX, texY, lightIndex, name){
             var curSurfData;
             var endPt;
             
