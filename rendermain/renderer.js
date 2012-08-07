@@ -42,42 +42,9 @@ a1.segment(
     a1.Renderer = a1.Class.extend({
         // TODO: These shaders should probably be moved out to separate files
         // so we don't need to mess with multiline strings
-        vertShaderStr: "precision mediump float;        \n\
-            attribute vec3 aVertexPosition;             \n\
-            attribute vec3 aTextureCoord;               \n\
-            uniform mat4 uMVMatrix;                     \n\
-            uniform mat4 uPMatrix;                      \n\
-                                                        \n\
-            varying vec3 vTextureCoord;                 \n\
-            varying float vIntensity;                   \n\
-            const int NUM_SURFLIGHTS={0};               \n\
-            uniform float uSurfLights[NUM_SURFLIGHTS];  \n\
-                                                        \n\
-            void main(void) {                           \n\
-                gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);\n\
-                vTextureCoord = aTextureCoord;          \n\
-                                                        \n\
-                vIntensity = uSurfLights[int(aTextureCoord.p + 0.1)];\n\
-            }",
+        vertShaderStr: "vert",
         
-        fragShaderStr: "precision mediump float;\n\
-                                                \n\
-            varying vec3 vTextureCoord;         \n\
-            varying float vIntensity;\
-            uniform sampler2D uSampler;         \n\
-                                                \n\
-            vec4 col;                           \n\
-            float alph;                         \n\
-            int src;                            \n\
-            void main(void) {			        \n\
-                col = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));\n\
-                alph = col.a;                   \n\
-                col = vIntensity * col;         \n\
-                col.a = alph;                   \n\
-                gl_FragColor = col;             \n\
-                if(gl_FragColor.a <.5)          \n\
-                    discard;                    \n\
-            }",
+        fragShaderStr: "frag",
         
         visPolys:[],
         prevPolyCount: -1,
@@ -94,10 +61,25 @@ a1.segment(
         overheadMapData: null, 
         
         init:function(){
+            // Load our shaders
+            $.ajax({async: false,
+                url:'media/shaders/main.vert', 
+                success: this.loadShaders(this, "vertShaderStr")});
+            $.ajax({async: false,
+                url:'media/shaders/main.frag', 
+                success: this.loadShaders(this, "fragShaderStr")});
             this.overheadMap = new a1.OverheadMap();
             this.overheadMapData = new a1.OverheadMapData();
         },
         
+        // Closure to pass the correct variable to be replaced to
+        // the jquery ajax call
+        loadShaders: function(renderer, varName){
+            return function(data){
+                renderer[varName] = data;
+            }
+        },
+
         initBuffers: function(){
             this.indexBuffer = a1.gl.createBuffer();
 	    
