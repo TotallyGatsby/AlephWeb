@@ -31,7 +31,7 @@
 a1.segment(
 	'rendermain.rendercomponent'
 ).defines(function(){
-	a1.RenderComponent = function(){
+	a1.RenderComponents= function(){
 
 	};
 });
