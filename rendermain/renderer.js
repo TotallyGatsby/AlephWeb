@@ -31,8 +31,10 @@
 */
 
 a1.segment(
-    'rendermain.renderer',
+    'rendermain.renderer'
+).requires(
     'rendermain.surfacemanager',
+    'rendermain.rendercomponent',
     'renderother.overheadmap'
 ).defines(function(){
     // TODO: Move debug constants out of this file
