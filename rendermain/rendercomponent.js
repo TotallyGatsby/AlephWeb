@@ -32,9 +32,9 @@ a1.segment(
 	'rendermain.rendercomponent'
 ).defines(function(){
 	a1.RenderComponent = function(){
-		matId:     -1, // Material Id
-		indices:   [], // Array of ints -- used to construct an index buffer
+		this.matId     =-1; // Material Id
+		this.indices   =   []; // Array of ints -- used to construct an index buffer
 		// TODO: Maybe keep only one instance of the identity matrix around?
-		transform: mat4.identity() // Transformation matrix for the renderable
+		this.transform = mat4.identity(); // Transformation matrix for the renderable
 	};
 });

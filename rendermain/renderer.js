@@ -36,11 +36,7 @@ a1.segment(
     'rendermain.surfacemanager',
     'rendermain.rendercomponent',
     'renderother.overheadmap'
-).defines(function(){
-    // TODO: Move debug constants out of this file
-    // The number of polygons to display in 'polymode'
-    window.polys = 3;
-        
+).defines(function(){      
     a1.Renderer = a1.Class.extend({
         // TODO: These shaders should probably be moved out to separate files
         // so we don't need to mess with multiline strings
@@ -50,10 +46,6 @@ a1.segment(
         
         visPolys:[],
         prevPolyCount: -1,
-        
-        // If we are rendering in polymode, we will use this index buffer to control
-        // which polygons are visible
-        indexBuffer:null,
         
         camPos: [0, 0, 0], 
 
@@ -182,15 +174,9 @@ a1.segment(
                 // in the console
                 this.visPolys.length = 0;
                 
-                if (a1.P.polymode){ // Polymode, grab the first window.polys polygons for rendering
-                    for(i = 0; i < window.polys; i++){
-                        this.visPolys.push(i);
-                    }
-                } else {
-                    // RENDER ALL THE THINGS! (All polys rendered)
-                    for(i = 0; i < a1.mapData.getChunkEntryCount("POLY"); i++){
-                        this.visPolys.push(i);                        
-                    }
+                // RENDER ALL THE THINGS! (All polys rendered)
+                for(i = 0; i < a1.mapData.getChunkEntryCount("POLY"); i++){
+                    this.visPolys.push(i);                        
                 }
                 
                 // Render the map if active
@@ -235,19 +221,9 @@ a1.segment(
                         a1.gl.bindTexture(a1.gl.TEXTURE_2D, a1.TM.loadTexture(matID));
                         
                         // Update the index buffer
-                        if (a1.P.polymode){
+                        a1.gl.bindBuffer(a1.gl.ELEMENT_ARRAY_BUFFER, a1.SM.surfaceBuffers[matID].idxBuffer);
                         
-                            a1.gl.bindBuffer(a1.gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
-                            a1.gl.bufferData(a1.gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(a1.SM.renderCache[matID]), a1.gl.STATIC_DRAW);
-                            this.indexBuffer.itemSize = 1;
-                            this.indexBuffer.numItems = a1.SM.renderCache[matID].length;
-                            a1.gl.drawElements(a1.gl.TRIANGLES, this.indexBuffer.numItems, a1.gl.UNSIGNED_SHORT, 0);  
-                        }
-                        else{
-                            a1.gl.bindBuffer(a1.gl.ELEMENT_ARRAY_BUFFER, a1.SM.surfaceBuffers[matID].idxBuffer);
-                            
-                            a1.gl.drawElements(a1.gl.TRIANGLES, a1.SM.surfaceBuffers[matID].idxBuffer.numItems, a1.gl.UNSIGNED_SHORT, 0);
-                        }
+                        a1.gl.drawElements(a1.gl.TRIANGLES, a1.SM.surfaceBuffers[matID].idxBuffer.numItems, a1.gl.UNSIGNED_SHORT, 0);
                     }
 
                     // Cleanup
