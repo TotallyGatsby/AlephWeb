@@ -50,7 +50,7 @@ a1.shell = {
         // Initialize webgl and attach it to a1
         a1.startWebGL($("#alephCanvas")[0]);
         
-        a1.TM = new TextureManager();
+        a1.TM = new a1.TextureManager();
         a1.mapData = new a1.Map();
         a1.mapData.loadMap("media/scenario/infinity/levels/0/level.json");
         
