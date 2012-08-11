@@ -37,7 +37,7 @@ a1.segment(
     		for (var token in this.tokens){
     			token.draw();
     		}
-    	}
+    	},
     	/*
 			Request a rendertoken giving the vertices and the material ID
     	*/
