@@ -250,7 +250,7 @@ a1.segment(
 
             // Put out token on the queue
             // TODO: Optimize by perhaps sorting the tokens to limit the number of draw calls?
-            this.renderQueue[token.matId].append(token);
+            this.renderQueue[token.matId].push(token);
 
             // For now, no merging of like buffers. (For example, a bunch of billboards)
         },
