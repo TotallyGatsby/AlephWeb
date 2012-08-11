@@ -79,8 +79,8 @@ a1.segment(
         },
         */
         draw: function(){
-            for (var poly in this.polys){
-                poly.draw();
+            for (var i = 0; i < this.polys.length; i++){
+                this.polys[i].draw();
             }
         },
 
