@@ -39,6 +39,7 @@ a1.segment(
     	setup: function(poly){
     		this.loadFloor(poly);
     		this.loadCeiling(poly);
+    		this.loadWalls(poly);
     	},
 
 		draw: function(){
@@ -102,6 +103,125 @@ a1.segment(
             }
             
             this.tokens.push(a1.SM.getSurfaceToken(verts, texCoords, poly.floorTexture));
+        },
+
+
+        // Each poly in Marathon has a 'sids' struct that contains
+        // information relevant to rendering a side.
+        // Within it are three texture coordinates:
+        //    Primary - Texture for the wall, or if the wall is split
+        //              texture for the upper half
+        //    Secondary - Texture for the lower half of a split wall
+        //    Transparent - Texture for the area between a split wall
+        loadWalls: function(poly){
+            var side;
+            var sideID;
+            var neighborID;
+            var matId;
+            var line;
+            
+            for(var i = 0; i < poly.sideIndices.length; i++){
+                sideID = poly.sideIndices[i];
+                if(sideID === -1)
+                    continue;
+                
+                // Get the actual side data
+                side = a1.mapData.getChunkEntry(sideID,"SIDS" );
+                line = a1.mapData.getChunkEntry(side.lineidx,"LINS" );
+                
+                var neighborID = poly.neighbors[i];
+                
+                // If our neighbor poly is -1, this is an edge of the world
+                if (neighborID === -1){
+                    matId = side.pmat;
+                    if (matId != -1){
+                        this.addVertSurface(matId, line, poly.floorHeight, poly.ceilingHeight, side.px, side.py, side.plite)
+                    }
+                    matId = side.smat;
+                    if (matId != -1){
+                        this.addVertSurface(matId, line, poly.floorHeight, poly.ceilingHeight, side.sx, side.sy, side.slite);
+                    }
+                    matId = side.tmat;
+                    if (matId != -1){
+                        this.addVertSurface(matId, line, poly.floorHeight, poly.ceilingHeight, side.tx, side.ty, side.tlite);
+                    }
+                }
+                // If the ceilings of the adjacent polys are equal, use the primary material for the lower area
+                else if (line.lAdjCei === poly.ceilingHeight){
+                    matId = side.pmat;
+                    if (matId != -1){
+                        this.addVertSurface(matId, line, poly.floorHeight, line.hAdjFlr, side.px, side.py,side.plite);
+                    }
+                    matId = side.tmat;
+                    if (matId != -1){
+                        this.addVertSurface(matId, line, line.hAdjFlr,  line.lAdjCei, side.tx, side.ty,side.tlite);
+                    }
+                }
+                // We have a split poly, render upper, lower, and transparent sides
+                else{
+                    matId = side.pmat;
+                    if (matId != -1){
+                        this.addVertSurface(matId, line, line.lAdjCei, poly.ceilingHeight, side.px, side.py,side.plite);
+                    }
+                    matId = side.smat;
+                    if (matId != -1){
+                        this.addVertSurface(matId, line, poly.floorHeight, line.hAdjFlr , side.sx, side.sy,side.slite);
+                    }
+                    matId = side.tmat;
+                    if (matId != -1){
+                        this.addVertSurface(matId, line, line.hAdjFlr,  line.lAdjCei, side.tx, side.ty,side.tlite);
+                    }
+                }
+            }
+        },
+        
+        // Adds the information to the buffers render a vertical surface - ie, walls
+        addVertSurface:function(matId, line, floor, ceiling, dx, dy, lite){
+        	var verts = [];
+        	var texCoords = [];
+            
+            // Append the data to the Pos, Tex, and Index arrays
+            // Build the vertex buffers
+            // Add the 4 points needed to render the wall
+            endPt1 = a1.mapData.getChunkEntry(line.p0, "EPNT");
+            endPt2 = a1.mapData.getChunkEntry(line.p1, "EPNT");
+            
+            xOffset =  dx/1024.0;
+            yOffset = -dy/1024.0;
+
+            // Upper Left
+            verts.push(endPt1.vertx);
+            verts.push(ceiling);
+            verts.push(endPt1.verty);
+            texCoords.push(xOffset);
+            texCoords.push(1.0+yOffset);
+            texCoords.push(lite);
+            
+            // Upper Right
+            verts.push(endPt2.vertx);
+            verts.push(ceiling);
+            verts.push(endPt2.verty);
+            texCoords.push(line.len/1024.0 + xOffset);
+            texCoords.push(1.0+yOffset);
+            texCoords.push(lite);
+	    
+            // Lower Right
+            verts.push(endPt2.vertx);
+            verts.push(floor);
+            verts.push(endPt2.verty);
+            texCoords.push(line.len/1024.0 + xOffset);
+            texCoords.push(1.0-((ceiling-floor)/1024.0)+yOffset);
+            texCoords.push(lite);
+	    
+            // Lower Left
+            verts.push(endPt1.vertx);
+            verts.push(floor);
+            verts.push(endPt1.verty);
+            texCoords.push(xOffset);
+            texCoords.push(1.0-((ceiling-floor)/1024.0) + yOffset);
+            texCoords.push(lite);
+
+            this.tokens.push(a1.SM.getSurfaceToken(verts, texCoords, matId));
         },
     });
 });
