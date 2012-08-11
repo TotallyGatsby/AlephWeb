@@ -88,17 +88,17 @@ a1.segment(
             for(var j=0; j < poly.endpointIndices.length; j++){
                 // Grab the endpoint coords
                 endPt = a1.mapData.getChunkEntry(poly.endpointIndices[j], "EPNT");
-                curSurfData.verts.push(endPt.vertx);
-                curSurfData.verts.push(poly.ceilingHeight);
-                curSurfData.verts.push(endPt.verty);
+                verts.push(endPt.vertx);
+                verts.push(poly.ceilingHeight);
+                verts.push(endPt.verty);
                 
                 // Marathon textures were 128x128px and 1024x1024 world units
                 // WebGL Texture coordinates are 0<->1 We can effectively divide
                 // the world pos by 1024 to get our texcoords
                 // TODO: Handle x/y offset on textures
-                curSurfData.texCoords.push(endPt.verty/1024.0+poly.floorY);
-                curSurfData.texCoords.push(endPt.vertx/1024.0+poly.floorX);
-                curSurfData.texCoords.push(poly.ceilingLightIndex);
+                texCoords.push(endPt.verty/1024.0+poly.floorY);
+                texCoords.push(endPt.vertx/1024.0+poly.floorX);
+                texCoords.push(poly.ceilingLightIndex);
             }
             
             this.tokens.push(a1.SM.getSurfaceToken(verts, texCoords, poly.floorTexture));

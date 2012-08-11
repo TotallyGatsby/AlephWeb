@@ -250,60 +250,6 @@ a1.segment(
             return offset;
         },
         
-        // Build the polygons for our floor
-        // TODO: This shares a lot of code with loadCeiling
-        //   condense it?
-        loadFloor: function(poly, i){
-            var curSurfData;
-            var matId;
-            var endPt;
-            // Get the material
-            matId = poly.floorTexture;
-            
-            // If we don't have arrays for that material, create them
-            this.ensureSurfData(matId);
-            
-            curSurfData = this.surfData[matId];
-            
-            var zeroPoint = curSurfData.verts.length/3;
-            
-            // Append the data to the Pos, Tex, and Index arrays
-            // Build the vertex buffers
-            for(var j=0; j < poly.endpointIndices.length; j++){
-                // Grab the endpoint coords
-                endPt = a1.mapData.getChunkEntry(poly.endpointIndices[j], "EPNT");
-                curSurfData.verts.push(endPt.vertx);
-                curSurfData.verts.push(poly.floorHeight);
-                curSurfData.verts.push(endPt.verty);
-                
-                // Marathon textures were 128x128px and 1024x1024 world units
-                // WebGL Texture coordinates are 0<->1 We can effectively divide
-                // the world pos by 1024 to get our texcoords
-                // TODO: Handle x/y offset on textures                
-                curSurfData.texCoords.push(endPt.verty/1024.0+poly.floorY);
-                curSurfData.texCoords.push(-(endPt.vertx/1024.0-poly.floorX)+.5);
-                curSurfData.texCoords.push(poly.floorLightIndex);
-            }
-            
-            // We need to know how many points are in the index buffer
-            // before we add any more to it so all our inserts are relative
-            // to the 0th point in this polygon
-            
-            var offset = curSurfData.indices.length;
-            var length = 0;
-            // Build the index buffer
-            for (j=2; j < poly.endpointIndices.length; j++){
-                curSurfData.indices.push(zeroPoint);
-                curSurfData.indices.push(j + zeroPoint);
-                curSurfData.indices.push(j - 1 + zeroPoint);
-                length+=3;
-            }
-            
-            // Record the MaterialID, the offset in the index buffer,
-            // and the length in the index buffer for quick lookups
-            this.polyLookup[i].push({"matId":matId, "offset":offset, "length":length});
-        },
-        
         // Build the polygons for our ceiling
         loadCeiling: function(poly, i){
             var curSurfData;
