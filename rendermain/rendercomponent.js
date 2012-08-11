@@ -40,7 +40,7 @@ a1.segment(
 		this.offset	   = 0; // Offset in the index buffer. Don't mess with this directly
 
 		this.draw      = function(){
-			a1.shell.renderer
+			a1.shell.renderer.enqueueToken(this);
 		};
 	};
 });
