@@ -76,6 +76,11 @@ a1.segment(
             a1.gl.bindBuffer(a1.gl.ARRAY_BUFFER, null);
         },
         */
+        draw: function(){
+            for (var poly in this.polys){
+                poly.draw();
+            }
+        },
 
         loadLevel: function(){
             this.surfData = {};
@@ -92,7 +97,7 @@ a1.segment(
                 polyinfo = a1.mapData.getChunkEntry(i, "POLY");
                 this.polys.push(poly);
             }
-            
+
             // Actually create our WebGL buffers
             $.each(this.surfData, this.buildBuffers);
             

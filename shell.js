@@ -71,6 +71,7 @@ a1.shell = {
     // but I only really pay token lip service to that here.
     renderTick:function(){
         requestAnimFrame(a1.shell.renderTick);
+        a1.SM.draw();
         a1.shell.renderer.render();
         a1.P.update();
     },

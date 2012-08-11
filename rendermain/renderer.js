@@ -336,7 +336,7 @@ a1.segment(
                         
                         // Clear our list of indices
                         this.indices = [];
-                        
+
                         // Iterate over our tokens to build the index buffer
                         for (var token in this.renderQueue[matID]){
                             this.indices.push.apply(this.indices, token.indices);
@@ -357,6 +357,8 @@ a1.segment(
                     a1.gl.bindBuffer(a1.gl.ELEMENT_ARRAY_BUFFER, null);                    
                 }
             }
+            
+            renderQueue = {};
         },
 
         getRenderToken: function(verts, texCoords, matId){
