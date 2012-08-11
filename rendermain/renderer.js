@@ -357,47 +357,8 @@ a1.segment(
                     a1.gl.bindBuffer(a1.gl.ELEMENT_ARRAY_BUFFER, null);                    
                 }
             }
-            
+
             renderQueue = {};
-        },
-
-        getRenderToken: function(verts, texCoords, matId){
-            var curSurfData;
-
-            // If we don't have arrays for that material, create them
-            a1.SM.ensureSurfData(matID);
-
-            // Get the arrays for the vertices
-            curSurfData = a1.SM.surfData[matID];
-            
-            // We need to know how many points are in the index buffer
-            // before we add any more to it so all our inserts are relative
-            // to the 0th point in this polygon
-            var zeroPoint = curSurfData.verts.length/3;
-            
-            // Put our data into the buffers
-            curSurfData.verts.push.apply(curSurfData.verts, verts);
-            curSurfData.texCoords.push.apply(curSurfData.texCoords, texCoords);
-
-            var offset = curSurfData.indices.length;
-            var length = 0;
-
-            // Render token
-            var token = new a1.RenderComponent();
-            token.matId = matId;
-
-            // Build the index buffer
-            for (var j=2; j < verts.length/3; j++){
-                token.indices.push(zeroPoint);
-                token.indices.push(j + zeroPoint);
-                token.indices.push(j - 1 + zeroPoint);
-                length += 3;
-            }
-            
-            token.offset = zeroPoint;
-            curSurfData.indices.push.apply(curSurfData.indices, token.indices);
-
-            return token;
-        }
+        }        
     });
 });

@@ -72,7 +72,7 @@ a1.segment(
                 texCoords.push(poly.floorLightIndex);
             }
             
-            this.tokens.push(a1.shell.renderer.getRenderToken(verts, texCoords, poly.floorTexture));
+            this.tokens.push(a1.SM.getSurfaceToken(verts, texCoords, poly.floorTexture));
         }
     });
 });
