@@ -56,13 +56,13 @@ a1.shell = {
         
         a1.mapData.loadAllTextures();
         
+        this.renderer = new a1.Renderer();
+
         a1.SM = new a1.SurfaceManager();
         a1.SM.loadLevel();
         
         a1.LM = new a1.LightManager();
-
-        this.renderer = new a1.Renderer();
-       
+  
         this.renderTick();
         this.tick();
     },
