@@ -211,10 +211,10 @@ a1.segment(
                     var posBuffer, texBuffer;
                     // For each material in the rendercache
                     // fire off a call to draw elements
-                    for (var matID in a1.SM.renderCache){
+                    for (var matId in a1.SM.renderCache){
                         // Fetch references to the vertex and texture buffers for this material
-                        posBuffer = a1.SM.surfaceBuffers[matID].posBuffer;
-                        texBuffer = a1.SM.surfaceBuffers[matID].texBuffer;
+                        posBuffer = a1.SM.surfaceBuffers[matId].posBuffer;
+                        texBuffer = a1.SM.surfaceBuffers[matId].texBuffer;
                         
                         // Send the data to the video card
                         a1.gl.bindBuffer(a1.gl.ARRAY_BUFFER, posBuffer);
@@ -222,12 +222,12 @@ a1.segment(
                         a1.gl.bindBuffer(a1.gl.ARRAY_BUFFER, texBuffer);
                         a1.gl.vertexAttribPointer(this.program.texCoordAttribute, texBuffer.itemSize, a1.gl.FLOAT, false, 0, 0);
                         
-                        a1.gl.bindTexture(a1.gl.TEXTURE_2D, a1.TM.loadTexture(matID));
+                        a1.gl.bindTexture(a1.gl.TEXTURE_2D, a1.TM.loadTexture(matId));
                         
                         // Update the index buffer
-                        a1.gl.bindBuffer(a1.gl.ELEMENT_ARRAY_BUFFER, a1.SM.surfaceBuffers[matID].idxBuffer);
+                        a1.gl.bindBuffer(a1.gl.ELEMENT_ARRAY_BUFFER, a1.SM.surfaceBuffers[matId].idxBuffer);
                         
-                        a1.gl.drawElements(a1.gl.TRIANGLES, a1.SM.surfaceBuffers[matID].idxBuffer.numItems, a1.gl.UNSIGNED_SHORT, 0);
+                        a1.gl.drawElements(a1.gl.TRIANGLES, a1.SM.surfaceBuffers[matId].idxBuffer.numItems, a1.gl.UNSIGNED_SHORT, 0);
                     }
 
                     // Cleanup
@@ -320,10 +320,10 @@ a1.segment(
                     var posBuffer, texBuffer;
                     // For each material in the rendercache
                     // fire off a call to draw elements
-                    for (var matID in this.renderQueue){
+                    for (var matId in this.renderQueue){
                         // Fetch references to the vertex and texture buffers for this material
-                        posBuffer = a1.SM.surfaceBuffers[matID].posBuffer;
-                        texBuffer = a1.SM.surfaceBuffers[matID].texBuffer;
+                        posBuffer = a1.SM.surfaceBuffers[matId].posBuffer;
+                        texBuffer = a1.SM.surfaceBuffers[matId].texBuffer;
                         
                         // Bind the data in the video card
                         a1.gl.bindBuffer(a1.gl.ARRAY_BUFFER, posBuffer);
@@ -332,23 +332,23 @@ a1.segment(
                         a1.gl.vertexAttribPointer(this.program.texCoordAttribute, texBuffer.itemSize, a1.gl.FLOAT, false, 0, 0);
                         
                         // Bind the texture
-                        a1.gl.bindTexture(a1.gl.TEXTURE_2D, a1.TM.loadTexture(matID));
+                        a1.gl.bindTexture(a1.gl.TEXTURE_2D, a1.TM.loadTexture(matId));
                         
                         // Clear our list of indices
                         this.indices = [];
 
                         // Iterate over our tokens to build the index buffer
-                        for (var token in this.renderQueue[matID]){
-                            this.indices.push.apply(this.indices, token.indices);
+                        for (var i = 0; i < this.renderQueue[matId].length; i++){
+                            this.indices.push.apply(this.indices, this.renderQueue[matId][i].indices);
                         }
 
                         // Push the index buffer data to the card
                         a1.gl.bufferData(a1.gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.indices), a1.gl.DYNAMIC_DRAW);
                         this.indexBuffer.numItems = this.indices.length;
 
-                        for (var token in this.renderQueue[matID]){
+                        for (var i = 0; i < this.renderQueue[matId].length; i++){
                             // Draw the triangles for this item
-                            a1.gl.drawElements(a1.gl.TRIANGLES, token.indices.length, a1.gl.UNSIGNED_SHORT, token.offset);
+                            a1.gl.drawElements(a1.gl.TRIANGLES, this.renderQueue[matId][i].indices.length, a1.gl.UNSIGNED_SHORT, this.renderQueue[matId][i].offset);
                         }
                     }
 
