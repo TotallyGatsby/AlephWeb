@@ -32,9 +32,15 @@ a1.segment(
 	'rendermain.rendercomponent'
 ).defines(function(){
 	a1.RenderComponent = function(){
-		this.matId     =-1; // Material Id
-		this.indices   =   []; // Array of ints -- used to construct an index buffer
+		this.matId     = -1; // Material Id
+		this.indices   = []; // Array of ints -- used to construct an index buffer
 		// TODO: Maybe keep only one instance of the identity matrix around?
-		this.transform = mat4.identity(); // Transformation matrix for the renderable
+		this.transform = null; // Transformation matrix for the renderable
+
+		this.offset	   = 0; // Offset in the index buffer. Don't mess with this directly
+
+		this.draw      = function(){
+			a1.shell.renderer
+		};
 	};
 });

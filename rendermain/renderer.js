@@ -54,6 +54,9 @@ a1.segment(
         overheadMap: null, // the overhead map renderer
         overheadMapData: null, 
         
+        indexBuffer: null,
+        indices: [],
+
         init:function(){
             // Load our shaders
             $.ajax({async: false,
@@ -122,6 +125,7 @@ a1.segment(
             //a1.gl.blendFunc(a1.gl.SRC_ALPHA, a1.gl.ONE);
         },
         
+        /*
         // Renders the player's view
         // Simple! Right?
         // ... right? guys? Where'd everyone go?
@@ -232,6 +236,166 @@ a1.segment(
                     // Determine objects in the view
                 }
             }
+        },
+        */
+        // Need two methods
+        renderQueue: {}, // Key: matId, Value: list of tokens
+
+        // First method takes a token and queues it
+        // Need one queue per material. Each entry is a list of indices
+        enqueueToken: function(token){
+            if (this.renderQueue[token.matId] === undefined){
+                this.renderQueue[token.matId] = [];
+            }
+
+            // Put out token on the queue
+            // TODO: Optimize by perhaps sorting the tokens to limit the number of draw calls?
+            this.renderQueue[token.matId].append(token);
+
+            // For now, no merging of like buffers. (For example, a bunch of billboards)
+        },
+
+        setModelView: function(){
+            mat4.identity(this.mvMatrix);
+            
+            this.camPos[0] = a1.P.position[0]*-1;
+            this.camPos[1] = a1.P.position[1]*-1;
+            this.camPos[2] = a1.P.position[2]*-1;
+                    
+            mat4.rotate(this.mvMatrix, a1.P.rotation, [0,1,0]);
+            mat4.translate(this.mvMatrix, this.camPos);
+            a1.gl.uniformMatrix4fv(this.program.mvMatrixUniform, false, this.mvMatrix);
+        },
+
+        // Second method renders all queues
+        render: function(){
+            var i,j;
+            var poly,endPt;
+            
+            // If we don't have buffers, make em
+            if (this.indexBuffer == null){
+                this.initBuffers();
+            }
+            
+            // If you are bored, turn this off for bizarro Marathon!
+            a1.gl.enable(a1.gl.DEPTH_TEST);
+            
+            // Clear the screen. I like red, cause it makes it obvious when I have
+            // gaps in the level
+            a1.gl.clearColor(0.6,0.0,0.0,1.0);
+            a1.gl.clear(a1.gl.COLOR_BUFFER_BIT | a1.gl.DEPTH_BUFFER_BIT);
+
+            // Establish our view
+            this.setModelView();
+            
+            // Reset Overhead Map
+            // NOTE: This doesn't do anything yet, but it will become more important later
+            // TODO: Doesn't belong in the render loop, 
+            a1.mapData.resetOverheadMap();
+    
+            // Render terminal if active
+            if (false)
+            {
+                // TODO
+                // Render awesome terminal text
+                // Maybe by displaying a <div> element above the canvas? No need
+                // to render everything in WebGL if it makes more sense to render in
+                // HTML
+            }
+            else
+            {
+                // Render the map if active
+                if (a1.P.overheadMap){
+                    this.overheadMap.render(this.overheadMapData);
+                } else {
+                    // Render the world if the map isn't active
+                    a1.gl.useProgram(this.program);
+                    
+                    // Update the lighting information
+                    a1.gl.uniform1fv(this.program.surfLightUniform, a1.LM.getIntensityArray());
+                    
+                    // Bind to the index buffer and texture0 for the frame
+                    a1.gl.bindBuffer(a1.gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
+                    
+                    var posBuffer, texBuffer;
+                    // For each material in the rendercache
+                    // fire off a call to draw elements
+                    for (var matID in this.renderQueue){
+                        // Fetch references to the vertex and texture buffers for this material
+                        posBuffer = a1.SM.surfaceBuffers[matID].posBuffer;
+                        texBuffer = a1.SM.surfaceBuffers[matID].texBuffer;
+                        
+                        // Bind the data in the video card
+                        a1.gl.bindBuffer(a1.gl.ARRAY_BUFFER, posBuffer);
+                        a1.gl.vertexAttribPointer(this.program.vertexPositionAttribute, posBuffer.itemSize, a1.gl.FLOAT, false, 0, 0);
+                        a1.gl.bindBuffer(a1.gl.ARRAY_BUFFER, texBuffer);
+                        a1.gl.vertexAttribPointer(this.program.texCoordAttribute, texBuffer.itemSize, a1.gl.FLOAT, false, 0, 0);
+                        
+                        // Bind the texture
+                        a1.gl.bindTexture(a1.gl.TEXTURE_2D, a1.TM.loadTexture(matID));
+                        
+                        // Clear our list of indices
+                        this.indices = [];
+                        
+                        // Iterate over our tokens to build the index buffer
+                        for (var token in this.renderQueue[matID]){
+                            this.indices.push.apply(this.indices, token.indices);
+                        }
+
+                        // Push the index buffer data to the card
+                        a1.gl.bufferData(a1.gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.indices), a1.gl.DYNAMIC_DRAW);
+                        this.indexBuffer.numItems = this.indices.length;
+
+                        for (var token in this.renderQueue[matID]){
+                            // Draw the triangles for this item
+                            a1.gl.drawElements(a1.gl.TRIANGLES, token.indices.length, a1.gl.UNSIGNED_SHORT, token.offset);
+                        }
+                    }
+
+                    // Cleanup
+                    a1.gl.bindBuffer(a1.gl.ARRAY_BUFFER, null);
+                    a1.gl.bindBuffer(a1.gl.ELEMENT_ARRAY_BUFFER, null);                    
+                }
+            }
+        },
+
+        getRenderToken: function(verts, texCoords, matId){
+            var curSurfData;
+
+            // If we don't have arrays for that material, create them
+            a1.SM.ensureSurfData(matID);
+
+            // Get the arrays for the vertices
+            curSurfData = a1.SM.surfData[matID];
+            
+            // We need to know how many points are in the index buffer
+            // before we add any more to it so all our inserts are relative
+            // to the 0th point in this polygon
+            var zeroPoint = curSurfData.verts.length/3;
+            
+            // Put our data into the buffers
+            curSurfData.verts.push.apply(curSurfData.verts, verts);
+            curSurfData.texCoords.push.apply(curSurfData.texCoords, texCoords);
+
+            var offset = curSurfData.indices.length;
+            var length = 0;
+
+            // Render token
+            var token = new a1.RenderComponent();
+            token.matId = matId;
+
+            // Build the index buffer
+            for (var j=2; j < verts.length/3; j++){
+                token.indices.push(zeroPoint);
+                token.indices.push(j + zeroPoint);
+                token.indices.push(j - 1 + zeroPoint);
+                length += 3;
+            }
+            
+            token.offset = zeroPoint;
+            curSurfData.indices.push.apply(curSurfData.indices, token.indices);
+
+            return token;
         }
     });
 });

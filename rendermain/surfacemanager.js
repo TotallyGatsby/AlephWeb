@@ -35,6 +35,7 @@ a1.segment(
 ).defines(function(){
     a1.SurfaceManager = a1.Class.extend({
         surfData: {},
+        // List of polygons
         polyLookup: [],
         surfaceBuffers: {},
         
