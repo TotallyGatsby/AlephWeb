@@ -94,9 +94,10 @@ a1.segment(
             // For each Poly
             for (var i = 0; i < polyCount; i++){
                 poly = new a1.Poly();
-                poly.setup();
-
                 polyinfo = a1.mapData.getChunkEntry(i, "POLY");
+                poly.setup(polyinfo);
+
+                
                 this.polys.push(poly);
             }
 
