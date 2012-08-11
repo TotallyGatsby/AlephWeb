@@ -403,7 +403,7 @@ a1.segment(
             curSurfData.indices.push.apply(curSurfData.indices, token.indices);
 
             return token;
-        }
+        },
         // We create one index buffer, one texture buffer, and one position buffer per
         // material id (ie, texture id)
         buildBuffers: function(matID, data){
