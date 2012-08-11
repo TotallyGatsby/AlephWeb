@@ -317,7 +317,7 @@ a1.segment(
                     // Bind to the index buffer and texture0 for the frame
                     a1.gl.bindBuffer(a1.gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
                     
-                    var posBuffer, texBuffer;
+                    var posBuffer, texBuffer, offset;
                     // For each material in the rendercache
                     // fire off a call to draw elements
                     for (var matId in this.renderQueue){
@@ -346,9 +346,11 @@ a1.segment(
                         a1.gl.bufferData(a1.gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.indices), a1.gl.DYNAMIC_DRAW);
                         this.indexBuffer.numItems = this.indices.length;
 
+                        offset = 0;
                         for (var i = 0; i < this.renderQueue[matId].length; i++){
                             // Draw the triangles for this item
-                            a1.gl.drawElements(a1.gl.TRIANGLES, this.renderQueue[matId][i].indices.length, a1.gl.UNSIGNED_SHORT, this.renderQueue[matId][i].offset);
+                            a1.gl.drawElements(a1.gl.TRIANGLES, this.renderQueue[matId][i].indices.length, a1.gl.UNSIGNED_SHORT, offset);
+                            offset += this.renderQueue[matId][i].indices.length;
                         }
                     }
 
