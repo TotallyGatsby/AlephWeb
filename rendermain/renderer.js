@@ -79,7 +79,7 @@ a1.segment(
 
         initBuffers: function(){
             this.indexBuffer = a1.gl.createBuffer();
-	    
+	        this.indexBuffer.itemSize = 1;
             // update the vert shader with the number of surface lights
             var shaderStr = this.vertShaderStr.replace("{0}", a1.mapData.getChunkEntryCount("LITE"));
             
