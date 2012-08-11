@@ -358,7 +358,7 @@ a1.segment(
                 }
             }
 
-            renderQueue = {};
+            this.renderQueue = {};
         }        
     });
 });
