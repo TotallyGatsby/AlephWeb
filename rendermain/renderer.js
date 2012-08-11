@@ -349,7 +349,7 @@ a1.segment(
                         offset = 0;
                         for (var i = 0; i < this.renderQueue[matId].length; i++){
                             // Draw the triangles for this item
-                            a1.gl.drawElements(a1.gl.TRIANGLES, this.renderQueue[matId][i].indices.length, a1.gl.UNSIGNED_SHORT, offset);
+                            a1.gl.drawElements(a1.gl.TRIANGLES, this.renderQueue[matId][i].indices.length, a1.gl.UNSIGNED_SHORT, offset*2);
                             offset += this.renderQueue[matId][i].indices.length;
                         }
                     }
