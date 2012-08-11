@@ -33,18 +33,16 @@ a1.segment(
     a1.Poly = a1.Class.extend({
     	tokens: [], // The rendertokens
 
-    	
-
     	/*
 			Request a rendertoken giving the vertices and the material ID
     	*/
     	setup: function(poly){
     		this.loadFloor(poly);
     	},
-    	
+
 		draw: function(){
-    		for (var token in this.tokens){
-    			token.draw();
+    		for (var i = 0; i < this.tokens.length; i++){
+    			this.tokens[i].draw();
     		}
     	},
     	// Build the polygons for our floor
