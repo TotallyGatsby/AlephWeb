@@ -55,6 +55,7 @@ a1.segment(
         overheadMapData: null, 
         
         indexBuffer: null,
+        indexBuffers: {},
         indices: [],
 
         init:function(){
@@ -75,6 +76,22 @@ a1.segment(
             return function(data){
                 renderer[varName] = data;
             }
+        },
+
+        createIndexBuffer: function(matId){
+            // Clear our list of indices
+            var indices = [];
+
+            // Iterate over our tokens to build the index buffer
+            for (var i = 0; i < this.renderQueue[matId].length; i++){
+                indices.push.apply(indices, this.renderQueue[matId][i].indices);
+            }
+
+            this.indexBuffers[matId] = a1.gl.createBuffer();
+            this.indexBuffers[matId].itemSize = 1;
+            a1.gl.bindBuffer(a1.gl.ELEMENT_ARRAY_BUFFER, this.indexBuffers[matId]);
+            a1.gl.bufferData(a1.gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), a1.gl.STATIC_DRAW);
+            this.indexBuffers[matId].numItems = indices.length;
         },
 
         initBuffers: function(){
@@ -314,9 +331,6 @@ a1.segment(
                     // Update the lighting information
                     a1.gl.uniform1fv(this.program.surfLightUniform, a1.LM.getIntensityArray());
                     
-                    // Bind to the index buffer and texture0 for the frame
-                    a1.gl.bindBuffer(a1.gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
-                    
                     var posBuffer, texBuffer, offset;
                     // For each material in the rendercache
                     // fire off a call to draw elements
@@ -331,20 +345,16 @@ a1.segment(
                         a1.gl.bindBuffer(a1.gl.ARRAY_BUFFER, texBuffer);
                         a1.gl.vertexAttribPointer(this.program.texCoordAttribute, texBuffer.itemSize, a1.gl.FLOAT, false, 0, 0);
                         
-                        // Bind the texture
+                        // Bind the material
                         a1.gl.bindTexture(a1.gl.TEXTURE_2D, a1.TM.loadTexture(matId));
                         
+                        if (this.indexBuffers[matId] === undefined){
+                            this.createIndexBuffer(matId);
+                        }
+                        // Bind to the index buffer and texture0 for the frame
+                        a1.gl.bindBuffer(a1.gl.ELEMENT_ARRAY_BUFFER, this.indexBuffers[matId]);
                         // Clear our list of indices
                         this.indices = [];
-
-                        // Iterate over our tokens to build the index buffer
-                        for (var i = 0; i < this.renderQueue[matId].length; i++){
-                            this.indices.push.apply(this.indices, this.renderQueue[matId][i].indices);
-                        }
-
-                        // Push the index buffer data to the card
-                        a1.gl.bufferData(a1.gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.indices), a1.gl.DYNAMIC_DRAW);
-                        this.indexBuffer.numItems = this.indices.length;
 
                         offset = 0;
                         for (var i = 0; i < this.renderQueue[matId].length; i++){
