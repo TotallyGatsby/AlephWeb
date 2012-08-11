@@ -120,7 +120,7 @@ a1.segment(
             var sideID;
             var neighborID;
             var curSurfData;
-            var matID;
+            var matId;
             var zeroPoint;
             var endPt1;
             var line;
@@ -141,61 +141,61 @@ a1.segment(
                 
                 // If our neighbor poly is -1, this is an edge of the world
                 if (neighborID === -1){
-                    matID = side.pmat;
-                    if (matID != -1){
-                        zeroPoint = this.addVertSurface(matID, line, poly.floorHeight,poly.ceilingHeight,side.px, side.py,side.plite)
-                        this.polyLookup[polyId].push({"matID":matID, "offset":zeroPoint, "length":6});
+                    matId = side.pmat;
+                    if (matId != -1){
+                        zeroPoint = this.addVertSurface(matId, line, poly.floorHeight,poly.ceilingHeight,side.px, side.py,side.plite)
+                        this.polyLookup[polyId].push({"matId":matId, "offset":zeroPoint, "length":6});
                     }
-                    matID = side.smat;
-                    if (matID != -1){
-                        zeroPoint = this.addVertSurface(matID, line, poly.floorHeight,poly.ceilingHeight , side.sx, side.sy,side.slite);
-                        this.polyLookup[polyId].push({"matID":matID, "offset":zeroPoint, "length":6});
+                    matId = side.smat;
+                    if (matId != -1){
+                        zeroPoint = this.addVertSurface(matId, line, poly.floorHeight,poly.ceilingHeight , side.sx, side.sy,side.slite);
+                        this.polyLookup[polyId].push({"matId":matId, "offset":zeroPoint, "length":6});
                     }
-                    matID = side.tmat;
-                    if (matID != -1){
-                        zeroPoint = this.addVertSurface(matID, line, poly.floorHeight,poly.ceilingHeight, side.tx, side.ty,side.tlite);
-                        this.polyLookup[polyId].push({"matID":matID, "offset":zeroPoint, "length":6});
+                    matId = side.tmat;
+                    if (matId != -1){
+                        zeroPoint = this.addVertSurface(matId, line, poly.floorHeight,poly.ceilingHeight, side.tx, side.ty,side.tlite);
+                        this.polyLookup[polyId].push({"matId":matId, "offset":zeroPoint, "length":6});
                     }
                 }
                 // If the ceilings of the adjacent polys are equal, use the primary material for the lower area
                 else if (line.lAdjCei === poly.ceilingHeight){
-                    matID = side.pmat;
-                    if (matID != -1){
-                        zeroPoint = this.addVertSurface(matID, line, poly.floorHeight, line.hAdjFlr, side.px, side.py,side.plite);
-                        this.polyLookup[polyId].push({"matID":matID, "offset":zeroPoint, "length":6});
+                    matId = side.pmat;
+                    if (matId != -1){
+                        zeroPoint = this.addVertSurface(matId, line, poly.floorHeight, line.hAdjFlr, side.px, side.py,side.plite);
+                        this.polyLookup[polyId].push({"matId":matId, "offset":zeroPoint, "length":6});
                     }
-                    matID = side.tmat;
-                    if (matID != -1){
-                        zeroPoint = this.addVertSurface(matID, line, line.hAdjFlr,  line.lAdjCei, side.tx, side.ty,side.tlite);
-                        this.polyLookup[polyId].push({"matID":matID, "offset":zeroPoint, "length":6});
+                    matId = side.tmat;
+                    if (matId != -1){
+                        zeroPoint = this.addVertSurface(matId, line, line.hAdjFlr,  line.lAdjCei, side.tx, side.ty,side.tlite);
+                        this.polyLookup[polyId].push({"matId":matId, "offset":zeroPoint, "length":6});
                     }
                 }
                 // We have a split poly, render upper, lower, and transparent sides
                 else{
-                    matID = side.pmat;
-                    if (matID != -1){
-                        zeroPoint = this.addVertSurface(matID, line, line.lAdjCei, poly.ceilingHeight, side.px, side.py,side.plite);
-                        this.polyLookup[polyId].push({"matID":matID, "offset":zeroPoint, "length":6});
+                    matId = side.pmat;
+                    if (matId != -1){
+                        zeroPoint = this.addVertSurface(matId, line, line.lAdjCei, poly.ceilingHeight, side.px, side.py,side.plite);
+                        this.polyLookup[polyId].push({"matId":matId, "offset":zeroPoint, "length":6});
                     }
-                    matID = side.smat;
-                    if (matID != -1){
-                        zeroPoint = this.addVertSurface(matID, line, poly.floorHeight, line.hAdjFlr , side.sx, side.sy,side.slite);
-                        this.polyLookup[polyId].push({"matID":matID, "offset":zeroPoint, "length":6});
+                    matId = side.smat;
+                    if (matId != -1){
+                        zeroPoint = this.addVertSurface(matId, line, poly.floorHeight, line.hAdjFlr , side.sx, side.sy,side.slite);
+                        this.polyLookup[polyId].push({"matId":matId, "offset":zeroPoint, "length":6});
                     }
-                    matID = side.tmat;
-                    if (matID != -1){
-                        zeroPoint = this.addVertSurface(matID, line, line.hAdjFlr,  line.lAdjCei, side.tx, side.ty,side.tlite);
-                        this.polyLookup[polyId].push({"matID":matID, "offset":zeroPoint, "length":6});
+                    matId = side.tmat;
+                    if (matId != -1){
+                        zeroPoint = this.addVertSurface(matId, line, line.hAdjFlr,  line.lAdjCei, side.tx, side.ty,side.tlite);
+                        this.polyLookup[polyId].push({"matId":matId, "offset":zeroPoint, "length":6});
                     }
                 }
             }
         },
         
         // Adds the information to the buffers render a vertical surface - ie, walls
-        addVertSurface:function(matID, line, floor, ceiling, dx, dy, lite){
-            this.ensureSurfData(matID);
+        addVertSurface:function(matId, line, floor, ceiling, dx, dy, lite){
+            this.ensureSurfData(matId);
                     
-            var curSurfData = this.surfData[matID];
+            var curSurfData = this.surfData[matId];
             
             zeroPoint = curSurfData.verts.length/3;
             
@@ -255,15 +255,15 @@ a1.segment(
         //   condense it?
         loadFloor: function(poly, i){
             var curSurfData;
-            var matID;
+            var matId;
             var endPt;
             // Get the material
-            matID = poly.floorTexture;
+            matId = poly.floorTexture;
             
             // If we don't have arrays for that material, create them
-            this.ensureSurfData(matID);
+            this.ensureSurfData(matId);
             
-            curSurfData = this.surfData[matID];
+            curSurfData = this.surfData[matId];
             
             var zeroPoint = curSurfData.verts.length/3;
             
@@ -301,21 +301,21 @@ a1.segment(
             
             // Record the MaterialID, the offset in the index buffer,
             // and the length in the index buffer for quick lookups
-            this.polyLookup[i].push({"matID":matID, "offset":offset, "length":length});
+            this.polyLookup[i].push({"matId":matId, "offset":offset, "length":length});
         },
         
         // Build the polygons for our ceiling
         loadCeiling: function(poly, i){
             var curSurfData;
-            var matID;
+            var matId;
             var endPt;
             // Get the material
-            matID = poly.ceilingTexture;
+            matId = poly.ceilingTexture;
             
             // If we don't have arrays for that material, create them
-            this.ensureSurfData(matID);
+            this.ensureSurfData(matId);
             
-            curSurfData = this.surfData[matID];
+            curSurfData = this.surfData[matId];
             
             var zeroPoint = curSurfData.verts.length/3;
             
@@ -353,16 +353,16 @@ a1.segment(
             
             // Record the MaterialID, the offset in the index buffer,
             // and the length in the index buffer for quick lookups
-            this.polyLookup[i].push({"matID":matID, "offset":offset, "length":length});
+            this.polyLookup[i].push({"matId":matId, "offset":offset, "length":length});
         },
         
         // Ensures we have the proper data structures in place for each material id
-        ensureSurfData: function(matID){
-            if (this.surfData[matID] === undefined){
-                this.surfData[matID] = {};
-                this.surfData[matID].verts = [];
-                this.surfData[matID].texCoords = [];
-                this.surfData[matID].indices = [];
+        ensureSurfData: function(matId){
+            if (this.surfData[matId] === undefined){
+                this.surfData[matId] = {};
+                this.surfData[matId].verts = [];
+                this.surfData[matId].texCoords = [];
+                this.surfData[matId].indices = [];
             }
         },
 
@@ -370,10 +370,10 @@ a1.segment(
             var curSurfData;
 
             // If we don't have arrays for that material, create them
-            this.ensureSurfData(matID);
+            this.ensureSurfData(matId);
 
             // Get the arrays for the vertices
-            curSurfData = this.surfData[matID];
+            curSurfData = this.surfData[matId];
             
             // We need to know how many points are in the index buffer
             // before we add any more to it so all our inserts are relative
@@ -406,32 +406,32 @@ a1.segment(
         },
         // We create one index buffer, one texture buffer, and one position buffer per
         // material id (ie, texture id)
-        buildBuffers: function(matID, data){
+        buildBuffers: function(matId, data){
             // Create an object to store the buffers
-            a1.SM.surfaceBuffers[matID] = {};
+            a1.SM.surfaceBuffers[matId] = {};
             
             // Create the position buffer
-            a1.SM.surfaceBuffers[matID].posBuffer = a1.gl.createBuffer();
-            a1.gl.bindBuffer(a1.gl.ARRAY_BUFFER, a1.SM.surfaceBuffers[matID].posBuffer);
+            a1.SM.surfaceBuffers[matId].posBuffer = a1.gl.createBuffer();
+            a1.gl.bindBuffer(a1.gl.ARRAY_BUFFER, a1.SM.surfaceBuffers[matId].posBuffer);
             // Put our data in the position buffer
             a1.gl.bufferData(a1.gl.ARRAY_BUFFER, new Float32Array(this.verts), a1.gl.STATIC_DRAW);
-            a1.SM.surfaceBuffers[matID].posBuffer.itemSize = 3;
-            a1.SM.surfaceBuffers[matID].posBuffer.numItems = this.verts.length/3;
+            a1.SM.surfaceBuffers[matId].posBuffer.itemSize = 3;
+            a1.SM.surfaceBuffers[matId].posBuffer.numItems = this.verts.length/3;
             
             // Create the texcoord buffer
-            a1.SM.surfaceBuffers[matID].texBuffer = a1.gl.createBuffer();
-            a1.gl.bindBuffer(a1.gl.ARRAY_BUFFER, a1.SM.surfaceBuffers[matID].texBuffer);
+            a1.SM.surfaceBuffers[matId].texBuffer = a1.gl.createBuffer();
+            a1.gl.bindBuffer(a1.gl.ARRAY_BUFFER, a1.SM.surfaceBuffers[matId].texBuffer);
             
             // Fill the buffer
             a1.gl.bufferData(a1.gl.ARRAY_BUFFER, new Float32Array(this.texCoords), a1.gl.STATIC_DRAW);
-            a1.SM.surfaceBuffers[matID].texBuffer.itemSize = 3;
-            a1.SM.surfaceBuffers[matID].texBuffer.numItems = this.texCoords.length/3; // Same number of items
+            a1.SM.surfaceBuffers[matId].texBuffer.itemSize = 3;
+            a1.SM.surfaceBuffers[matId].texBuffer.numItems = this.texCoords.length/3; // Same number of items
             
-            a1.SM.surfaceBuffers[matID].idxBuffer = a1.gl.createBuffer();
-            a1.gl.bindBuffer(a1.gl.ELEMENT_ARRAY_BUFFER, a1.SM.surfaceBuffers[matID].idxBuffer);
+            a1.SM.surfaceBuffers[matId].idxBuffer = a1.gl.createBuffer();
+            a1.gl.bindBuffer(a1.gl.ELEMENT_ARRAY_BUFFER, a1.SM.surfaceBuffers[matId].idxBuffer);
             a1.gl.bufferData(a1.gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.indices), a1.gl.STATIC_DRAW);
-            a1.SM.surfaceBuffers[matID].idxBuffer.itemSize = 1;
-            a1.SM.surfaceBuffers[matID].idxBuffer.numItems = this.indices.length;
+            a1.SM.surfaceBuffers[matId].idxBuffer.itemSize = 1;
+            a1.SM.surfaceBuffers[matId].idxBuffer.numItems = this.indices.length;
         }
     });  
 });
