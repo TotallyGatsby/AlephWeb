@@ -37,53 +37,20 @@ a1.segment(
 ).defines(function(){
     a1.SurfaceManager = a1.Class.extend({
         surfData: {},
+        // List of poly objects (the static level geometry)
         polys: [],
 
-        // List of polygons
-        polyLookup: [],
+        // Vertex and texcoord buffers for the surfaces in the game
         surfaceBuffers: {},
         
-        // A dictionary of indices to build index buffers
-        renderCache: {},
-        
-        // Clears the render cache in prep for rendering
-        clearCache: function(){
-            this.renderCache = {};            
-        },
-
-        
-        // Populates the necessary data structures to render the level only once
-        /*
-        loadLevel: function(){
-            this.surfData = {};
-            this.polyLookup.length = 0;
-            
-            var polyCount = a1.mapData.getChunkEntryCount("POLY");
-            var poly;
-            
-            // For each Poly
-            for (var i = 0; i < polyCount; i++){
-                this.polyLookup.push([]);
-                // For each surface
-                poly = a1.mapData.getChunkEntry(i, "POLY");
-                
-                this.loadFloor(poly, i);
-                this.loadCeiling(poly, i);
-                this.loadWalls(poly, i);
-            }
-            // Actually create our WebGL buffers
-            $.each(this.surfData, this.buildBuffers);
-            
-            // Clean up
-            a1.gl.bindBuffer(a1.gl.ARRAY_BUFFER, null);
-        },
-        */
+        // Draw all the surfaces
         draw: function(){
             for (var i = 0; i < this.polys.length; i++){
                 this.polys[i].draw();
             }
         },
 
+        // Load the level, creating all the needed poly objects
         loadLevel: function(){
             this.surfData = {};
 
@@ -108,7 +75,7 @@ a1.segment(
             a1.gl.bindBuffer(a1.gl.ARRAY_BUFFER, null);
         },
         
-        
+
         // Ensures we have the proper data structures in place for each material id
         ensureSurfData: function(matId){
             if (this.surfData[matId] === undefined){
@@ -119,6 +86,7 @@ a1.segment(
             }
         },
 
+        // Gets a rendercomponent object and simultaneously manages the buffers
         getSurfaceToken: function(verts, texCoords, matId){
             var curSurfData;
 
@@ -157,7 +125,8 @@ a1.segment(
 
             return token;
         },
-        // We create one index buffer, one texture buffer, and one position buffer per
+
+        // We create one texture buffer, and one position buffer per
         // material id (ie, texture id)
         buildBuffers: function(matId, data){
             // Create an object to store the buffers
@@ -179,12 +148,6 @@ a1.segment(
             a1.gl.bufferData(a1.gl.ARRAY_BUFFER, new Float32Array(this.texCoords), a1.gl.STATIC_DRAW);
             a1.SM.surfaceBuffers[matId].texBuffer.itemSize = 3;
             a1.SM.surfaceBuffers[matId].texBuffer.numItems = this.texCoords.length/3; // Same number of items
-            
-            a1.SM.surfaceBuffers[matId].idxBuffer = a1.gl.createBuffer();
-            a1.gl.bindBuffer(a1.gl.ELEMENT_ARRAY_BUFFER, a1.SM.surfaceBuffers[matId].idxBuffer);
-            a1.gl.bufferData(a1.gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.indices), a1.gl.STATIC_DRAW);
-            a1.SM.surfaceBuffers[matId].idxBuffer.itemSize = 1;
-            a1.SM.surfaceBuffers[matId].idxBuffer.numItems = this.indices.length;
         }
     });  
 });
