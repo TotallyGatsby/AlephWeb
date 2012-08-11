@@ -33,18 +33,20 @@ a1.segment(
     a1.Poly = a1.Class.extend({
     	tokens: [], // The rendertokens
 
-    	draw: function(){
-    		for (var token in this.tokens){
-    			token.draw();
-    		}
-    	},
+    	
+
     	/*
 			Request a rendertoken giving the vertices and the material ID
     	*/
     	setup: function(poly){
     		this.loadFloor(poly);
     	},
-
+    	
+		draw: function(){
+    		for (var token in this.tokens){
+    			token.draw();
+    		}
+    	},
     	// Build the polygons for our floor
         // TODO: This shares a lot of code with loadCeiling
         //   condense it?
