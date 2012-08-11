@@ -35,6 +35,8 @@ a1.segment(
 ).defines(function(){
     a1.SurfaceManager = a1.Class.extend({
         surfData: {},
+        polys: [],
+
         // List of polygons
         polyLookup: [],
         surfaceBuffers: {},
@@ -46,30 +48,10 @@ a1.segment(
         clearCache: function(){
             this.renderCache = {};            
         },
-        
-        // Called many times per frame, this function
-        // takes a Marathon poly, looks up its surfaces
-        // and adds indices to the rendercache
-        registerPoly: function(index){
-            if (this.polyLookup[index] === undefined){
-                return;
-            }
-            var temp;            
-            
-            for(var i=0; i < this.polyLookup[index].length; i++){
-                temp = this.polyLookup[index][i];
-                // Get the index buffer info and add it to the cache
-                
-                if (this.renderCache[temp.matID] === undefined){
-                    this.renderCache[temp.matID] = []; // Create the cache if needed
-                }
-                
-                this.renderCache[temp.matID] = this.renderCache[temp.matID].concat(this.surfData[temp.matID].indices.slice(temp.offset, temp.offset+temp.length));
-            }
-        },
 
         
         // Populates the necessary data structures to render the level only once
+        /*
         loadLevel: function(){
             this.surfData = {};
             this.polyLookup.length = 0;
@@ -87,6 +69,30 @@ a1.segment(
                 this.loadCeiling(poly, i);
                 this.loadWalls(poly, i);
             }
+            // Actually create our WebGL buffers
+            $.each(this.surfData, this.buildBuffers);
+            
+            // Clean up
+            a1.gl.bindBuffer(a1.gl.ARRAY_BUFFER, null);
+        },
+        */
+
+        loadLevel: function(){
+            this.surfData = {};
+
+            var polyCount = a1.mapData.getChunkEntryCount("POLY");
+            var polyinfo;
+            var poly;
+            
+            // For each Poly
+            for (var i = 0; i < polyCount; i++){
+                poly = new a1.Poly();
+                poly.setup();
+
+                polyinfo = a1.mapData.getChunkEntry(i, "POLY");
+                this.polys.push(poly);
+            }
+            
             // Actually create our WebGL buffers
             $.each(this.surfData, this.buildBuffers);
             
