@@ -32,6 +32,8 @@
 
 a1.segment(
 	'rendermain.surfacemanager'
+).requires(
+    'gameworld.poly'
 ).defines(function(){
     a1.SurfaceManager = a1.Class.extend({
         surfData: {},
