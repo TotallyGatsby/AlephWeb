@@ -100,7 +100,7 @@ a1.segment(
         },
         
         extendsFloorToCeiling:function(){
-            return (flags & (0x1 << 3)) != 0;
+            return (flags & (0x1 << 5)) != 0;
         },
         
         comesFromFloor:function(){
@@ -109,8 +109,6 @@ a1.segment(
         
         comesFromCeiling:function(){
             return (flags & (0x1 << 7)) != 0;
-        },
-        
+        }, 
     });
-    
 });
