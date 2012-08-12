@@ -41,7 +41,7 @@ a1.segment(
         vertShaderStr: "Vert Shader Not Loaded",
         
         fragShaderStr: "Frag Shader Not Loaded",
-        
+        program: null,
         camPos: [0, 0, 0], 
 
         pMatrix: null, // projection matrix
@@ -168,7 +168,7 @@ a1.segment(
             var poly,endPt;
             
             // If we don't have buffers, make em
-            if (this.indexBuffer == null){
+            if (this.program == null){
                 this.initBuffers();
             }
             
