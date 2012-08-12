@@ -24,7 +24,7 @@
 /*
  
  map.js - Loads map data from a json file representing the level
-    and provides an inteface to get that data
+    and provides an interface to get that data
  
 */
 a1.segment(

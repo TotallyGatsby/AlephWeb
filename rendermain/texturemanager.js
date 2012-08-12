@@ -32,7 +32,7 @@
 a1.segment(
 	'rendermain.texturemanager'
 ).defines(function(){
-    TextureManager = a1.Class.extend({
+    a1.TextureManager = a1.Class.extend({
         
         loadedTextures: {},
         
@@ -85,6 +85,5 @@ a1.segment(
             // Handle scenarios besides Marathon Infinity
             return "media/scenario/infinity/img/"+collection+"/"+shape+".png";
         }
-    });
-    
+    }); 
 });

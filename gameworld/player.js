@@ -37,7 +37,6 @@ a1.segment(
         rotation: 0,
         position:[-888, 700, 6600],
         overheadMap: false,
-        polymode: false,
         speed: 45,
 		
         init: function(){
@@ -84,21 +83,6 @@ a1.segment(
             
             if(event.keyCode >= 48 && event.keyCode <= 57){
                 a1.LM.toggle(event.keyCode-48+20);
-            }
-            
-			// This is a debug feature to add/remove polys during runtime
-            if(event.keyCode === 107){
-                console.log("Added: "+window.polys);
-                window.polys+=1;
-                
-            }
-            if(event.keyCode === 109){
-                window.polys-=1;
-                console.log("Removed: "+window.polys);
-            }
-            if(String.fromCharCode(event.keyCode)==="P"){
-                event.data.player.polymode = !event.data.player.polymode;
-                console.log("Polymode:" + event.data.player.polymode);
             }
         },
         

@@ -31,76 +31,63 @@
 */
 
 a1.segment(
-    'rendermain.renderer',
+    'rendermain.renderer'
+).requires(
     'rendermain.surfacemanager',
+    'rendermain.rendercomponent',
     'renderother.overheadmap'
-).defines(function(){
-    // TODO: Move debug constants out of this file
-    // The number of polygons to display in 'polymode'
-    window.polys = 3;
-        
+).defines(function(){      
     a1.Renderer = a1.Class.extend({
-        // TODO: These shaders should probably be moved out to separate files
-        // so we don't need to mess with multiline strings
-        vertShaderStr: "precision mediump float;        \n\
-            attribute vec3 aVertexPosition;             \n\
-            attribute vec3 aTextureCoord;               \n\
-            uniform mat4 uMVMatrix;                     \n\
-            uniform mat4 uPMatrix;                      \n\
-                                                        \n\
-            varying vec3 vTextureCoord;                 \n\
-            varying float vIntensity;                   \n\
-            const int NUM_SURFLIGHTS={0};               \n\
-            uniform float uSurfLights[NUM_SURFLIGHTS];  \n\
-                                                        \n\
-            void main(void) {                           \n\
-                gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);\n\
-                vTextureCoord = aTextureCoord;          \n\
-                                                        \n\
-                vIntensity = uSurfLights[int(aTextureCoord.p + 0.1)];\n\
-            }",
+        vertShaderStr: "Vert Shader Not Loaded",
         
-        fragShaderStr: "precision mediump float;\n\
-                                                \n\
-            varying vec3 vTextureCoord;         \n\
-            varying float vIntensity;\
-            uniform sampler2D uSampler;         \n\
-                                                \n\
-            vec4 col;                           \n\
-            float alph;                         \n\
-            int src;                            \n\
-            void main(void) {			        \n\
-                col = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));\n\
-                alph = col.a;                   \n\
-                col = vIntensity * col;         \n\
-                col.a = alph;                   \n\
-                gl_FragColor = col;             \n\
-                if(gl_FragColor.a <.5)          \n\
-                    discard;                    \n\
-            }",
-        
-        visPolys:[],
-        prevPolyCount: -1,
-        
-        // If we are rendering in polymode, we will use this index buffer to control
-        // which polygons are visible
-        indexBuffer:null,
-        
+        fragShaderStr: "Frag Shader Not Loaded",
+        program: null,
         camPos: [0, 0, 0], 
 
         pMatrix: null, // projection matrix
         mvMatrix: null, // model-view matrix of the player's position/rotation
         overheadMap: null, // the overhead map renderer
         overheadMapData: null, 
-        
+
+        indexBuffers: {},
+
         init:function(){
+            // Load our shaders
+            $.ajax({async: false,
+                url:'media/shaders/main.vert', 
+                success: this.loadShaders(this, "vertShaderStr")});
+            $.ajax({async: false,
+                url:'media/shaders/main.frag', 
+                success: this.loadShaders(this, "fragShaderStr")});
             this.overheadMap = new a1.OverheadMap();
             this.overheadMapData = new a1.OverheadMapData();
         },
         
+        // Closure to pass the correct variable to be replaced to
+        // the jquery ajax call
+        loadShaders: function(renderer, varName){
+            return function(data){
+                renderer[varName] = data;
+            }
+        },
+
+        createIndexBuffer: function(matId){
+            // Clear our list of indices
+            var indices = [];
+
+            // Iterate over our tokens to build the index buffer
+            for (var i = 0; i < this.renderQueue[matId].length; i++){
+                indices.push.apply(indices, this.renderQueue[matId][i].indices);
+            }
+
+            this.indexBuffers[matId] = a1.gl.createBuffer();
+            this.indexBuffers[matId].itemSize = 1;
+            a1.gl.bindBuffer(a1.gl.ELEMENT_ARRAY_BUFFER, this.indexBuffers[matId]);
+            a1.gl.bufferData(a1.gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), a1.gl.STATIC_DRAW);
+            this.indexBuffers[matId].numItems = indices.length;
+        },
+
         initBuffers: function(){
-            this.indexBuffer = a1.gl.createBuffer();
-	    
             // update the vert shader with the number of surface lights
             var shaderStr = this.vertShaderStr.replace("{0}", a1.mapData.getChunkEntryCount("LITE"));
             
@@ -146,14 +133,42 @@ a1.segment(
             //a1.gl.blendFunc(a1.gl.SRC_ALPHA, a1.gl.ONE);
         },
         
-        // Renders the player's view
-        // Simple! Right?
-        // ... right? guys? Where'd everyone go?
-        render:function(viewData){
+        // Need two methods
+        renderQueue: {}, // Key: matId, Value: list of tokens
+
+        // First method takes a token and queues it
+        // Need one queue per material. Each entry is a list of indices
+        enqueueToken: function(token){
+            if (this.renderQueue[token.matId] === undefined){
+                this.renderQueue[token.matId] = [];
+            }
+
+            // Put out token on the queue
+            // TODO: Optimize by perhaps sorting the tokens to limit the number of draw calls?
+            this.renderQueue[token.matId].push(token);
+
+            // For now, no merging of like buffers. (For example, a bunch of billboards)
+        },
+
+        setModelView: function(){
+            mat4.identity(this.mvMatrix);
+            
+            this.camPos[0] = a1.P.position[0]*-1;
+            this.camPos[1] = a1.P.position[1]*-1;
+            this.camPos[2] = a1.P.position[2]*-1;
+                    
+            mat4.rotate(this.mvMatrix, a1.P.rotation, [0,1,0]);
+            mat4.translate(this.mvMatrix, this.camPos);
+            a1.gl.uniformMatrix4fv(this.program.mvMatrixUniform, false, this.mvMatrix);
+        },
+
+        // Second method renders all queues
+        render: function(){
             var i,j;
             var poly,endPt;
             
-            if (this.indexBuffer == null){
+            // If we don't have buffers, make em
+            if (this.program == null){
                 this.initBuffers();
             }
             
@@ -166,18 +181,11 @@ a1.segment(
             a1.gl.clear(a1.gl.COLOR_BUFFER_BIT | a1.gl.DEPTH_BUFFER_BIT);
 
             // Establish our view
-            mat4.identity(this.mvMatrix);
-            
-            this.camPos[0] = a1.P.position[0]*-1;
-            this.camPos[1] = a1.P.position[1]*-1;
-            this.camPos[2] = a1.P.position[2]*-1;
-	                
-            mat4.rotate(this.mvMatrix, a1.P.rotation, [0,1,0]);
-            mat4.translate(this.mvMatrix, this.camPos);
-            a1.gl.uniformMatrix4fv(this.program.mvMatrixUniform, false, this.mvMatrix);
+            this.setModelView();
             
             // Reset Overhead Map
             // NOTE: This doesn't do anything yet, but it will become more important later
+            // TODO: Doesn't belong in the render loop, 
             a1.mapData.resetOverheadMap();
     
             // Render terminal if active
@@ -191,24 +199,6 @@ a1.segment(
             }
             else
             {
-                // Determine the visible polys
-                // TODO: pull this out and create a subsetting function
-                // Ideally determining the visible polys would be a function you could
-                // redefine at runtime, so you could create your own debug views directly
-                // in the console
-                this.visPolys.length = 0;
-                
-                if (a1.P.polymode){ // Polymode, grab the first window.polys polygons for rendering
-                    for(i = 0; i < window.polys; i++){
-                        this.visPolys.push(i);
-                    }
-                } else {
-                    // RENDER ALL THE THINGS! (All polys rendered)
-                    for(i = 0; i < a1.mapData.getChunkEntryCount("POLY"); i++){
-                        this.visPolys.push(i);                        
-                    }
-                }
-                
                 // Render the map if active
                 if (a1.P.overheadMap){
                     this.overheadMap.render(this.overheadMapData);
@@ -218,63 +208,47 @@ a1.segment(
                     
                     // Update the lighting information
                     a1.gl.uniform1fv(this.program.surfLightUniform, a1.LM.getIntensityArray());
-
-                    // Clear the surface manager's cache
-                    if (this.prevPolyCount != this.visPolys.length){
-                        a1.SM.clearCache();
                     
-                        // Register all the polygons we plan to draw
-                        for(i=0; i < this.visPolys.length;i++){
-                            a1.SM.registerPoly(this.visPolys[i]);
-                        }
-                    }
-                    
-                    this.prevPolyCount = this.visPolys.length;
-                    
-                    // Bind to the index buffer and texture0 for the frame
-                    a1.gl.bindBuffer(a1.gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
-                    
-                    var posBuffer, texBuffer;
+                    var posBuffer, texBuffer, offset;
                     // For each material in the rendercache
                     // fire off a call to draw elements
-                    for (var matID in a1.SM.renderCache){
-                        // Ensure we always have the most up to date info in our buffer
-                        a1.SM.updateBuffer(matID);
-                        
+                    for (var matId in this.renderQueue){
                         // Fetch references to the vertex and texture buffers for this material
-                        posBuffer = a1.SM.surfaceBuffers[matID].posBuffer;
-                        texBuffer = a1.SM.surfaceBuffers[matID].texBuffer;
+                        posBuffer = a1.SM.surfaceBuffers[matId].posBuffer;
+                        texBuffer = a1.SM.surfaceBuffers[matId].texBuffer;
                         
-                        // Send the data to the video card
+                        // Bind the data in the video card
                         a1.gl.bindBuffer(a1.gl.ARRAY_BUFFER, posBuffer);
                         a1.gl.vertexAttribPointer(this.program.vertexPositionAttribute, posBuffer.itemSize, a1.gl.FLOAT, false, 0, 0);
                         a1.gl.bindBuffer(a1.gl.ARRAY_BUFFER, texBuffer);
                         a1.gl.vertexAttribPointer(this.program.texCoordAttribute, texBuffer.itemSize, a1.gl.FLOAT, false, 0, 0);
                         
-                        a1.gl.bindTexture(a1.gl.TEXTURE_2D, a1.TM.loadTexture(matID));
+                        // Bind the material
+                        a1.gl.bindTexture(a1.gl.TEXTURE_2D, a1.TM.loadTexture(matId));
                         
-                        // Update the index buffer
-                        if (a1.P.polymode){
-                        
-                            a1.gl.bindBuffer(a1.gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
-                            a1.gl.bufferData(a1.gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(a1.SM.renderCache[matID]), a1.gl.STATIC_DRAW);
-                            this.indexBuffer.itemSize = 1;
-                            this.indexBuffer.numItems = a1.SM.renderCache[matID].length;
-                            a1.gl.drawElements(a1.gl.TRIANGLES, this.indexBuffer.numItems, a1.gl.UNSIGNED_SHORT, 0);  
+                        if (this.indexBuffers[matId] === undefined){
+                            this.createIndexBuffer(matId);
                         }
-                        else{
-                            a1.gl.bindBuffer(a1.gl.ELEMENT_ARRAY_BUFFER, a1.SM.surfaceBuffers[matID].idxBuffer);
-                            
-                            a1.gl.drawElements(a1.gl.TRIANGLES, a1.SM.surfaceBuffers[matID].idxBuffer.numItems, a1.gl.UNSIGNED_SHORT, 0);
+                        // Bind to the index buffer and texture0 for the frame
+                        a1.gl.bindBuffer(a1.gl.ELEMENT_ARRAY_BUFFER, this.indexBuffers[matId]);
+                        // Clear our list of indices
+                        this.indices = [];
+
+                        offset = 0;
+                        for (var i = 0; i < this.renderQueue[matId].length; i++){
+                            // Draw the triangles for this item
+                            a1.gl.drawElements(a1.gl.TRIANGLES, this.renderQueue[matId][i].indices.length, a1.gl.UNSIGNED_SHORT, offset*2);
+                            offset += this.renderQueue[matId][i].indices.length;
                         }
                     }
 
                     // Cleanup
                     a1.gl.bindBuffer(a1.gl.ARRAY_BUFFER, null);
-                    a1.gl.bindBuffer(a1.gl.ELEMENT_ARRAY_BUFFER, null);
-                    // Determine objects in the view
+                    a1.gl.bindBuffer(a1.gl.ELEMENT_ARRAY_BUFFER, null);                    
                 }
             }
-        }
+
+            this.renderQueue = {};
+        }        
     });
 });

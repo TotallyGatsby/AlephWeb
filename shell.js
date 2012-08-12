@@ -50,19 +50,19 @@ a1.shell = {
         // Initialize webgl and attach it to a1
         a1.startWebGL($("#alephCanvas")[0]);
         
-        a1.TM = new TextureManager();
+        a1.TM = new a1.TextureManager();
         a1.mapData = new a1.Map();
         a1.mapData.loadMap("media/scenario/infinity/levels/0/level.json");
         
         a1.mapData.loadAllTextures();
         
+        this.renderer = new a1.Renderer();
+
         a1.SM = new a1.SurfaceManager();
         a1.SM.loadLevel();
         
         a1.LM = new a1.LightManager();
-
-        this.renderer = new a1.Renderer();
-       
+  
         this.renderTick();
         this.tick();
     },
@@ -71,6 +71,7 @@ a1.shell = {
     // but I only really pay token lip service to that here.
     renderTick:function(){
         requestAnimFrame(a1.shell.renderTick);
+        a1.SM.draw();
         a1.shell.renderer.render();
         a1.P.update();
     },
