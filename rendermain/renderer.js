@@ -38,14 +38,9 @@ a1.segment(
     'renderother.overheadmap'
 ).defines(function(){      
     a1.Renderer = a1.Class.extend({
-        // TODO: These shaders should probably be moved out to separate files
-        // so we don't need to mess with multiline strings
-        vertShaderStr: "vert",
+        vertShaderStr: "Vert Shader Not Loaded",
         
-        fragShaderStr: "frag",
-        
-        visPolys:[],
-        prevPolyCount: -1,
+        fragShaderStr: "Frag Shader Not Loaded",
         
         camPos: [0, 0, 0], 
 
@@ -53,10 +48,8 @@ a1.segment(
         mvMatrix: null, // model-view matrix of the player's position/rotation
         overheadMap: null, // the overhead map renderer
         overheadMapData: null, 
-        
-        indexBuffer: null,
+
         indexBuffers: {},
-        indices: [],
 
         init:function(){
             // Load our shaders
@@ -95,8 +88,6 @@ a1.segment(
         },
 
         initBuffers: function(){
-            this.indexBuffer = a1.gl.createBuffer();
-	        this.indexBuffer.itemSize = 1;
             // update the vert shader with the number of surface lights
             var shaderStr = this.vertShaderStr.replace("{0}", a1.mapData.getChunkEntryCount("LITE"));
             
@@ -142,119 +133,6 @@ a1.segment(
             //a1.gl.blendFunc(a1.gl.SRC_ALPHA, a1.gl.ONE);
         },
         
-        /*
-        // Renders the player's view
-        // Simple! Right?
-        // ... right? guys? Where'd everyone go?
-        render:function(viewData){
-            var i,j;
-            var poly,endPt;
-            
-            if (this.indexBuffer == null){
-                this.initBuffers();
-            }
-            
-            // If you are bored, turn this off for bizarro Marathon!
-            a1.gl.enable(a1.gl.DEPTH_TEST);
-            
-            // Clear the screen. I like red, cause it makes it obvious when I have
-            // gaps in the level
-            a1.gl.clearColor(0.6,0.0,0.0,1.0);
-            a1.gl.clear(a1.gl.COLOR_BUFFER_BIT | a1.gl.DEPTH_BUFFER_BIT);
-
-            // Establish our view
-            mat4.identity(this.mvMatrix);
-            
-            this.camPos[0] = a1.P.position[0]*-1;
-            this.camPos[1] = a1.P.position[1]*-1;
-            this.camPos[2] = a1.P.position[2]*-1;
-	                
-            mat4.rotate(this.mvMatrix, a1.P.rotation, [0,1,0]);
-            mat4.translate(this.mvMatrix, this.camPos);
-            a1.gl.uniformMatrix4fv(this.program.mvMatrixUniform, false, this.mvMatrix);
-            
-            // Reset Overhead Map
-            // NOTE: This doesn't do anything yet, but it will become more important later
-            a1.mapData.resetOverheadMap();
-    
-            // Render terminal if active
-            if (false)
-            {
-                // TODO
-                // Render awesome terminal text
-                // Maybe by displaying a <div> element above the canvas? No need
-                // to render everything in WebGL if it makes more sense to render in
-                // HTML
-            }
-            else
-            {
-                // Determine the visible polys
-                // TODO: pull this out and create a subsetting function
-                // Ideally determining the visible polys would be a function you could
-                // redefine at runtime, so you could create your own debug views directly
-                // in the console
-                this.visPolys.length = 0;
-                
-                // RENDER ALL THE THINGS! (All polys rendered)
-                for(i = 0; i < a1.mapData.getChunkEntryCount("POLY"); i++){
-                    this.visPolys.push(i);                        
-                }
-                
-                // Render the map if active
-                if (a1.P.overheadMap){
-                    this.overheadMap.render(this.overheadMapData);
-                } else {
-                    // Render the world if the map isn't active
-                    a1.gl.useProgram(this.program);
-                    
-                    // Update the lighting information
-                    a1.gl.uniform1fv(this.program.surfLightUniform, a1.LM.getIntensityArray());
-
-                    // Clear the surface manager's cache
-                    if (this.prevPolyCount != this.visPolys.length){
-                        a1.SM.clearCache();
-                    
-                        // Register all the polygons we plan to draw
-                        for(i=0; i < this.visPolys.length;i++){
-                            a1.SM.registerPoly(this.visPolys[i]);
-                        }
-                    }
-                    
-                    this.prevPolyCount = this.visPolys.length;
-                    
-                    // Bind to the index buffer and texture0 for the frame
-                    a1.gl.bindBuffer(a1.gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
-                    
-                    var posBuffer, texBuffer;
-                    // For each material in the rendercache
-                    // fire off a call to draw elements
-                    for (var matId in a1.SM.renderCache){
-                        // Fetch references to the vertex and texture buffers for this material
-                        posBuffer = a1.SM.surfaceBuffers[matId].posBuffer;
-                        texBuffer = a1.SM.surfaceBuffers[matId].texBuffer;
-                        
-                        // Send the data to the video card
-                        a1.gl.bindBuffer(a1.gl.ARRAY_BUFFER, posBuffer);
-                        a1.gl.vertexAttribPointer(this.program.vertexPositionAttribute, posBuffer.itemSize, a1.gl.FLOAT, false, 0, 0);
-                        a1.gl.bindBuffer(a1.gl.ARRAY_BUFFER, texBuffer);
-                        a1.gl.vertexAttribPointer(this.program.texCoordAttribute, texBuffer.itemSize, a1.gl.FLOAT, false, 0, 0);
-                        
-                        a1.gl.bindTexture(a1.gl.TEXTURE_2D, a1.TM.loadTexture(matId));
-                        
-                        // Update the index buffer
-                        a1.gl.bindBuffer(a1.gl.ELEMENT_ARRAY_BUFFER, a1.SM.surfaceBuffers[matId].idxBuffer);
-                        
-                        a1.gl.drawElements(a1.gl.TRIANGLES, a1.SM.surfaceBuffers[matId].idxBuffer.numItems, a1.gl.UNSIGNED_SHORT, 0);
-                    }
-
-                    // Cleanup
-                    a1.gl.bindBuffer(a1.gl.ARRAY_BUFFER, null);
-                    a1.gl.bindBuffer(a1.gl.ELEMENT_ARRAY_BUFFER, null);
-                    // Determine objects in the view
-                }
-            }
-        },
-        */
         // Need two methods
         renderQueue: {}, // Key: matId, Value: list of tokens
 

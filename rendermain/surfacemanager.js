@@ -27,7 +27,6 @@
         less static. Surface Manager builds the necessary buffers to
         render them when the level loads, and tries to use the minimum
         number of surfaces when the game renders.
- 
 */
 
 a1.segment(
@@ -36,8 +35,10 @@ a1.segment(
     'gameworld.poly'
 ).defines(function(){
     a1.SurfaceManager = a1.Class.extend({
+        // The raw data for the vertices/texcoords
         surfData: {},
-        // List of poly objects (the static level geometry)
+
+        // List of a1.Poly objects (the static level geometry)
         polys: [],
 
         // Vertex and texcoord buffers for the surfaces in the game
