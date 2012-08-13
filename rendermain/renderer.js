@@ -51,6 +51,8 @@ a1.segment(
 
         indexBuffers: {},
 
+        objMatrix: null,
+
         init:function(){
             // Load our shaders
             $.ajax({async: false,
@@ -99,10 +101,13 @@ a1.segment(
             // create our matrices
             this.pMatrix = mat4.create();
             this.mvMatrix = mat4.create();
-            
+            this.objMatrix = mat4.identity();
+
             // store our uniform locations
             this.program.pMatrixUniform = a1.gl.getUniformLocation(this.program, "uPMatrix");
             this.program.mvMatrixUniform = a1.gl.getUniformLocation(this.program, "uMVMatrix");
+            this.program.objMatrixUniform = a1.gl.getUniformLocation(this.program, "objMatrix");
+
             this.program.samplerUniform = a1.gl.getUniformLocation(this.program, "uSampler");
             this.program.surfLightUniform = a1.gl.getUniformLocation(this.program, "uSurfLights");
             
@@ -159,7 +164,10 @@ a1.segment(
                     
             mat4.rotate(this.mvMatrix, a1.P.rotation, [0,1,0]);
             mat4.translate(this.mvMatrix, this.camPos);
+
+            mat4.translate(this.objMatrix, [0,1,0]);
             a1.gl.uniformMatrix4fv(this.program.mvMatrixUniform, false, this.mvMatrix);
+            a1.gl.uniformMatrix4fv(this.program.objMatrixUniform, false, this.objMatrix);
         },
 
         // Second method renders all queues
